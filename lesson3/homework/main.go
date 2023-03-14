@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 type Conversation string
@@ -34,7 +36,7 @@ func ParseFlags() (*Options, error) {
 	flag.StringVar(&opts.To, "to", "", "file to write. by default - stdout")
 	flag.IntVar(&opts.Offset, "offset", 0, "number of bytes to be skipped")
 	flag.IntVar(&opts.Limit, "limit", -1, "max number of bytes to be read. by default - all file")
-	flag.IntVar(&opts.BlockSize, "block-size", 0, "the size of one block in bytes when reading and writing")
+	flag.IntVar(&opts.BlockSize, "block-size", 10, "the size of one block in bytes when reading and writing")
 	flag.StringVar(&opts.Conv, "conv", "", "one or more of the possible "+
 		"transformations over the text, separated by commas.")
 	flag.Parse()
@@ -108,10 +110,6 @@ func validateOffset(offset int) error {
 	}
 }
 
-func shutDown() {
-
-}
-
 func main() {
 	logger := log.New(os.Stderr, "ERROR:\t", 3)
 	opts, err := ParseFlags()
@@ -145,10 +143,14 @@ func main() {
 	isOffsetUseful := false
 	bytesRead := 0
 	isTrimmed := false
+	outputLine := ""
+	spaces := make([]byte, 0)
+	buf2 := make([]byte, 0)
 
 	for bytesRead <= opts.Limit || opts.Limit == -1 {
-		line, errorReader := reader.ReadBytes('\n')
-		if errorReader != nil && len(line) == 0 {
+		buf := make([]byte, opts.BlockSize)
+		n, errorReader := reader.Read(buf)
+		if n == 0 {
 			if errorReader == io.EOF {
 				if !isOffsetUseful {
 					logger.Fatal("offset is bigger then file is")
@@ -158,50 +160,67 @@ func main() {
 				logger.Fatal("cant read the input file", errorReader)
 			}
 		}
+		buf = buf[:n]
+		if len(buf2) != 0 {
+			buf2 = append(buf2, buf...)
+			buf = buf2
+			buf2 = make([]byte, 0)
+		}
+		i := len(buf) - 1
+		k := 0
+		var rune1 rune
+		for i >= 0 && i >= len(buf)-5 {
+			rune1, k = utf8.DecodeRune(buf[i:])
+			if rune1 != utf8.RuneError {
+				break
+			}
+			i--
+		}
+		buf2 = append(buf2, buf[i+k:]...)
+		buf = buf[:i+k]
 		if !isOffsetUseful {
-			if len(line) < opts.Offset {
-				opts.Offset -= len(line)
+			if len(buf) < opts.Offset {
+				opts.Offset -= len(buf)
 				continue
 			} else {
 				isOffsetUseful = true
-				line = line[opts.Offset:]
+				buf = buf[opts.Offset:]
 			}
 		}
-		bytesRead += len(line)
+		bytesRead += len(buf)
 		if bytesRead > opts.Limit && opts.Limit != -1 {
-			line = line[:len(line)-(bytesRead-opts.Limit)]
+			buf = buf[:len(buf)-(bytesRead-opts.Limit)]
 		}
-		outputLine := string(line)
 		splited := strings.Split(opts.Conv, ",")
+		convLine := string(buf)
 		for _, name := range splited {
 			switch Conversation(name) {
 			case LowerCase:
-				outputLine = strings.ToLower(outputLine)
+				convLine = strings.ToLower(convLine)
 			case UpperCase:
-				outputLine = strings.ToUpper(outputLine)
+				convLine = strings.ToUpper(convLine)
 			case TrimSpaces:
 				if !isTrimmed {
-					outputLine = strings.TrimLeft(outputLine, " \n\r\v\t")
+					convLine = strings.TrimLeft(convLine, " \n\r\v\t ")
 				}
-				if errorReader != nil {
-					outputLine = strings.TrimRight(outputLine, " \n\r\v\t")
-				}
-				if len(outputLine) != 0 {
+				if len(convLine) != 0 {
 					isTrimmed = true
+					buf = buf[len(buf)-len(convLine):]
+				}
+				if isTrimmed {
+					convLine = ""
+					for _, b := range string(buf) {
+						if unicode.IsSpace(b) {
+							spaces = append(spaces, []byte(string(b))...)
+						} else {
+							convLine += string(spaces) + string(b)
+							spaces = make([]byte, 0)
+						}
+					}
 				}
 			}
+			outputLine = convLine
 		}
 		fmt.Fprint(writer, outputLine)
-
-		if errorReader != nil {
-			if errorReader == io.EOF {
-				if !isOffsetUseful {
-					logger.Fatal("offset is bigger then file is")
-				}
-				break
-			} else {
-				logger.Fatal("cant read the input file", errorReader)
-			}
-		}
 	}
 }
