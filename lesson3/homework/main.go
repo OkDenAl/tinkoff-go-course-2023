@@ -20,6 +20,36 @@ const (
 	TrimSpaces Conversation = "trim_spaces"
 )
 
+type offsetReader struct {
+	offset         int
+	IsOffsetUseful bool
+}
+
+func (r *offsetReader) Read(buf []byte) (n int, err error) {
+	if len(buf) < r.offset {
+		r.offset -= len(buf)
+		return 0, fmt.Errorf("offset is bigger then buf")
+	} else {
+		r.IsOffsetUseful = true
+		return r.offset, nil
+	}
+}
+
+type limitReader struct {
+	Limit      int
+	BytesRead  int
+	NeedToStop bool
+}
+
+func (r *limitReader) Read(buf []byte) (n int, err error) {
+	r.BytesRead += len(buf)
+	if r.BytesRead > r.Limit && r.Limit != -1 {
+		r.NeedToStop = true
+		return len(buf) - (r.BytesRead - r.Limit), nil
+	}
+	return len(buf), nil
+}
+
 type Options struct {
 	From      string
 	To        string
@@ -110,6 +140,28 @@ func validateOffset(offset int) error {
 	}
 }
 
+func fixTruncBytes(inputBuf, storageBuf []byte, n int) ([]byte, []byte) {
+	inputBuf = inputBuf[:n]
+	if len(storageBuf) != 0 {
+		storageBuf = append(storageBuf, inputBuf...)
+		inputBuf = storageBuf
+		storageBuf = make([]byte, 0)
+	}
+	i := len(inputBuf) - 1
+	runeWidth := 0
+	var rune1 rune
+	for i >= 0 && i >= len(inputBuf)-5 {
+		rune1, runeWidth = utf8.DecodeRune(inputBuf[i:])
+		if rune1 != utf8.RuneError {
+			break
+		}
+		i--
+	}
+	storageBuf = append(storageBuf, inputBuf[i+runeWidth:]...)
+	inputBuf = inputBuf[:i+runeWidth]
+	return inputBuf, storageBuf
+}
+
 func main() {
 	logger := log.New(os.Stderr, "ERROR:\t", 3)
 	opts, err := ParseFlags()
@@ -122,37 +174,37 @@ func main() {
 	if err = validateConv(opts.Conv); err != nil {
 		logger.Fatal("invalid conv: ", err)
 	}
+	conversations := strings.Split(opts.Conv, ",")
 
 	reader, input, err := setupReader(opts)
-	if err != nil {
-		logger.Fatal("cant setup reader: ", err)
-	}
 	if input != nil {
 		defer input.Close()
 	}
+	if err != nil {
+		logger.Fatal("cant setup reader: ", err)
+	}
 
 	writer, output, err := setupWriter(opts)
-	if err != nil {
-		logger.Fatal("cant setup writer: ", err)
-	}
 	if output != nil {
 		defer output.Close()
 	}
-	defer writer.Flush()
+	if err != nil {
+		logger.Fatal("cant setup writer: ", err)
+	}
 
-	isOffsetUseful := false
-	bytesRead := 0
+	offset := offsetReader{offset: opts.Offset, IsOffsetUseful: false}
+	limit := limitReader{BytesRead: 0, Limit: opts.Limit, NeedToStop: false}
+
 	isTrimmed := false
-	outputLine := ""
 	spaces := make([]byte, 0)
-	buf2 := make([]byte, 0)
+	storageBuf := make([]byte, 0)
 
-	for bytesRead <= opts.Limit || opts.Limit == -1 {
-		buf := make([]byte, opts.BlockSize)
-		n, errorReader := reader.Read(buf)
+	for !limit.NeedToStop {
+		inputBuf := make([]byte, opts.BlockSize)
+		n, errorReader := reader.Read(inputBuf)
 		if n == 0 {
 			if errorReader == io.EOF {
-				if !isOffsetUseful {
+				if !offset.IsOffsetUseful {
 					logger.Fatal("offset is bigger then file is")
 				}
 				break
@@ -160,40 +212,20 @@ func main() {
 				logger.Fatal("cant read the input file", errorReader)
 			}
 		}
-		buf = buf[:n]
-		if len(buf2) != 0 {
-			buf2 = append(buf2, buf...)
-			buf = buf2
-			buf2 = make([]byte, 0)
-		}
-		i := len(buf) - 1
-		k := 0
-		var rune1 rune
-		for i >= 0 && i >= len(buf)-5 {
-			rune1, k = utf8.DecodeRune(buf[i:])
-			if rune1 != utf8.RuneError {
-				break
-			}
-			i--
-		}
-		buf2 = append(buf2, buf[i+k:]...)
-		buf = buf[:i+k]
-		if !isOffsetUseful {
-			if len(buf) < opts.Offset {
-				opts.Offset -= len(buf)
+		inputBuf, storageBuf = fixTruncBytes(inputBuf, storageBuf, n)
+
+		if !offset.IsOffsetUseful {
+			if n, err = offset.Read(inputBuf); err != nil {
 				continue
 			} else {
-				isOffsetUseful = true
-				buf = buf[opts.Offset:]
+				inputBuf = inputBuf[n:]
 			}
 		}
-		bytesRead += len(buf)
-		if bytesRead > opts.Limit && opts.Limit != -1 {
-			buf = buf[:len(buf)-(bytesRead-opts.Limit)]
-		}
-		splited := strings.Split(opts.Conv, ",")
-		convLine := string(buf)
-		for _, name := range splited {
+		n, _ = limit.Read(inputBuf)
+		inputBuf = inputBuf[:n]
+
+		convLine := string(inputBuf)
+		for _, name := range conversations {
 			switch Conversation(name) {
 			case LowerCase:
 				convLine = strings.ToLower(convLine)
@@ -205,11 +237,11 @@ func main() {
 				}
 				if len(convLine) != 0 {
 					isTrimmed = true
-					buf = buf[len(buf)-len(convLine):]
+					inputBuf = inputBuf[len(inputBuf)-len(convLine):]
 				}
 				if isTrimmed {
 					convLine = ""
-					for _, b := range string(buf) {
+					for _, b := range string(inputBuf) {
 						if unicode.IsSpace(b) {
 							spaces = append(spaces, []byte(string(b))...)
 						} else {
@@ -219,8 +251,28 @@ func main() {
 					}
 				}
 			}
-			outputLine = convLine
 		}
-		fmt.Fprint(writer, outputLine)
+		if len(convLine) < opts.BlockSize {
+			fmt.Fprint(writer, convLine)
+			writer.Flush()
+		} else {
+			convLineInBytes := []byte(convLine)
+			outputStorageBuf := make([]byte, 0)
+			for len(convLineInBytes) >= opts.BlockSize {
+				inputBuf = convLineInBytes[:opts.BlockSize]
+				inputBuf, outputStorageBuf = fixTruncBytes(inputBuf, outputStorageBuf, len(inputBuf))
+				if len(inputBuf) != 0 {
+					fmt.Fprint(writer, string(inputBuf))
+					writer.Flush()
+				}
+				convLineInBytes = convLineInBytes[opts.BlockSize:]
+			}
+			if len(convLineInBytes) != 0 {
+				inputBuf = convLineInBytes
+				inputBuf, outputStorageBuf = fixTruncBytes(inputBuf, outputStorageBuf, len(inputBuf))
+				fmt.Fprint(writer, string(inputBuf))
+				writer.Flush()
+			}
+		}
 	}
 }
