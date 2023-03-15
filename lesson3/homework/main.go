@@ -198,6 +198,7 @@ func main() {
 	isTrimmed := false
 	spaces := make([]byte, 0)
 	storageBuf := make([]byte, 0)
+	var outputStorageBuf []byte
 
 	for !limit.NeedToStop {
 		inputBuf := make([]byte, opts.BlockSize)
@@ -257,7 +258,6 @@ func main() {
 			writer.Flush()
 		} else {
 			convLineInBytes := []byte(convLine)
-			outputStorageBuf := make([]byte, 0)
 			for len(convLineInBytes) >= opts.BlockSize {
 				inputBuf = convLineInBytes[:opts.BlockSize]
 				inputBuf, outputStorageBuf = fixTruncBytes(inputBuf, outputStorageBuf, len(inputBuf))
