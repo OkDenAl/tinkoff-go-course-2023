@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"lecture03_homework/entity"
 	"log"
 	"os"
 	"strings"
@@ -12,12 +14,12 @@ import (
 	"unicode/utf8"
 )
 
-type Conversation string
-
-const (
-	UpperCase  Conversation = "upper_case"
-	LowerCase  Conversation = "lower_case"
-	TrimSpaces Conversation = "trim_spaces"
+var (
+	ErrOffsetTooBig          = errors.New("offset is bigger then buf")
+	ErrOffsetIsLessThenZero  = errors.New("offset is less then 0")
+	ErrUpperAndLowerTogether = errors.New("cant use upper_case and lower_case conversation together")
+	ErrUnknownConv           = errors.New("unknown conversation")
+	ErrFileExists            = errors.New("file already exists")
 )
 
 type offsetReader struct {
@@ -28,11 +30,10 @@ type offsetReader struct {
 func (r *offsetReader) Read(buf []byte) (n int, err error) {
 	if len(buf) < r.offset {
 		r.offset -= len(buf)
-		return 0, fmt.Errorf("offset is bigger then buf")
-	} else {
-		r.IsOffsetUseful = true
-		return r.offset, nil
+		return 0, ErrOffsetTooBig
 	}
+	r.IsOffsetUseful = true
+	return r.offset, nil
 }
 
 type limitReader struct {
@@ -56,30 +57,43 @@ type Options struct {
 	Offset    int
 	Limit     int
 	BlockSize int
-	Conv      string
+	Conv      []string
 }
 
 func ParseFlags() (*Options, error) {
 	var opts Options
+	var convInStr string
 
 	flag.StringVar(&opts.From, "from", "", "file to read. by default - stdin")
 	flag.StringVar(&opts.To, "to", "", "file to write. by default - stdout")
 	flag.IntVar(&opts.Offset, "offset", 0, "number of bytes to be skipped")
 	flag.IntVar(&opts.Limit, "limit", -1, "max number of bytes to be read. by default - all file")
 	flag.IntVar(&opts.BlockSize, "block-size", 10, "the size of one block in bytes when reading and writing")
-	flag.StringVar(&opts.Conv, "conv", "", "one or more of the possible "+
+	flag.StringVar(&convInStr, "conv", "", "one or more of the possible "+
 		"transformations over the text, separated by commas.")
 	flag.Parse()
+	opts.Conv = strings.Split(convInStr, ",")
+
+	if err := validateOffset(opts.Offset); err != nil {
+		return nil, fmt.Errorf("invalid offset: %w", err)
+	}
+	if err := validateConv(opts.Conv); err != nil {
+		return nil, fmt.Errorf("invalid conv: %w", err)
+	}
+
 	return &opts, nil
 }
 
 func setupReader(opts *Options) (*bufio.Reader, *os.File, error) {
-	var reader *bufio.Reader
-	var f *os.File
+	var (
+		reader *bufio.Reader
+		f      *os.File
+		err    error
+	)
 	if opts.From != "" {
-		f, err := os.Open(opts.From)
+		f, err = os.Open(opts.From)
 		if err != nil {
-			return nil, nil, fmt.Errorf("cant open input file: %v", err)
+			return nil, nil, fmt.Errorf("cant open input file: %w", err)
 		}
 		reader = bufio.NewReader(f)
 	} else {
@@ -89,15 +103,18 @@ func setupReader(opts *Options) (*bufio.Reader, *os.File, error) {
 }
 
 func setupWriter(opts *Options) (*bufio.Writer, *os.File, error) {
-	var writer *bufio.Writer
-	var f *os.File
+	var (
+		writer *bufio.Writer
+		f      *os.File
+		err    error
+	)
 	if opts.To != "" {
-		if _, err := os.Stat(opts.To); err == nil {
-			return nil, nil, fmt.Errorf("output file already exist")
+		if _, err := os.Stat(opts.To); !os.IsNotExist(err) {
+			return nil, nil, ErrFileExists
 		}
-		f, err := os.Create(opts.To)
+		f, err = os.Create(opts.To)
 		if err != nil {
-			return nil, nil, fmt.Errorf("cant create the output file: err: %v", err)
+			return nil, nil, fmt.Errorf("cant create the output file: err: %w", err)
 		}
 		writer = bufio.NewWriter(f)
 	} else {
@@ -106,27 +123,26 @@ func setupWriter(opts *Options) (*bufio.Writer, *os.File, error) {
 	return writer, f, nil
 }
 
-func validateConv(inputConv string) error {
-	if inputConv == "" {
+func validateConv(inputConv []string) error {
+	if len(inputConv) == 1 && inputConv[0] == "" {
 		return nil
 	}
-	splited := strings.Split(inputConv, ",")
-	usedConvs := make(map[Conversation]struct{})
-	for _, name := range splited {
-		switch Conversation(name) {
-		case LowerCase:
-			if _, ok := usedConvs[UpperCase]; ok {
-				return fmt.Errorf("cant use upper_case and lower_case conversation together")
+	usedConvs := make(map[entity.Conversation]struct{})
+	for _, name := range inputConv {
+		switch entity.Conversation(name) {
+		case entity.LowerCase:
+			if _, ok := usedConvs[entity.UpperCase]; ok {
+				return ErrUpperAndLowerTogether
 			}
-			usedConvs[LowerCase] = struct{}{}
-		case UpperCase:
-			if _, ok := usedConvs[LowerCase]; ok {
-				return fmt.Errorf("cant use upper_case and lower_case conversation together")
+			usedConvs[entity.LowerCase] = struct{}{}
+		case entity.UpperCase:
+			if _, ok := usedConvs[entity.LowerCase]; ok {
+				return ErrUpperAndLowerTogether
 			}
-			usedConvs[UpperCase] = struct{}{}
-		case TrimSpaces:
+			usedConvs[entity.UpperCase] = struct{}{}
+		case entity.TrimSpaces:
 		default:
-			return fmt.Errorf("unknown conversation")
+			return ErrUnknownConv
 		}
 	}
 	return nil
@@ -134,10 +150,9 @@ func validateConv(inputConv string) error {
 
 func validateOffset(offset int) error {
 	if offset < 0 {
-		return fmt.Errorf("offset is less then 0")
-	} else {
-		return nil
+		return ErrOffsetIsLessThenZero
 	}
+	return nil
 }
 
 func fixTruncBytes(inputBuf, storageBuf []byte, n int) ([]byte, []byte) {
@@ -163,23 +178,16 @@ func fixTruncBytes(inputBuf, storageBuf []byte, n int) ([]byte, []byte) {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "ERROR:\t", 3)
+	logger := log.New(os.Stderr, "ERROR:\t", log.LstdFlags)
 	opts, err := ParseFlags()
 	if err != nil {
 		logger.Fatal("can not parse flags: ", err)
 	}
-	if err = validateOffset(opts.Offset); err != nil {
-		logger.Fatal("invalid offset: ", err)
-	}
-	if err = validateConv(opts.Conv); err != nil {
-		logger.Fatal("invalid conv: ", err)
-	}
-	conversations := strings.Split(opts.Conv, ",")
 
-	reader, input, err := setupReader(opts)
-	if input != nil {
-		defer input.Close()
-	}
+	reader, _, err := setupReader(opts)
+	//if input != nil {
+	//	defer input.Close()
+	//}
 	if err != nil {
 		logger.Fatal("cant setup reader: ", err)
 	}
@@ -226,13 +234,13 @@ func main() {
 		inputBuf = inputBuf[:n]
 
 		convLine := string(inputBuf)
-		for _, name := range conversations {
-			switch Conversation(name) {
-			case LowerCase:
+		for _, name := range opts.Conv {
+			switch entity.Conversation(name) {
+			case entity.LowerCase:
 				convLine = strings.ToLower(convLine)
-			case UpperCase:
+			case entity.UpperCase:
 				convLine = strings.ToUpper(convLine)
-			case TrimSpaces:
+			case entity.TrimSpaces:
 				if !isTrimmed {
 					convLine = strings.TrimLeft(convLine, " \n\r\v\t ")
 				}
