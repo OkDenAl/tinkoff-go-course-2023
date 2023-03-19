@@ -55,38 +55,26 @@ func startWorker(ctx context.Context, in <-chan Dir, errch chan<- error, done ch
 }
 
 func (a *sizer) Size(ctx context.Context, d Dir) (Result, error) {
-	res := Result{}
-	workerInput := make(chan Dir)
-	errorCh := make(chan error)
-	done := make(chan struct{})
-	wg := sync.WaitGroup{}
-
-	for i := 0; i < a.maxWorkersCount; i++ {
-		wg.Add(1)
-		go startWorker(ctx, workerInput, errorCh, done, &wg, &res)
+	res := Result{Size: 0, Count: 0}
+	dirs, files, err := d.Ls(ctx)
+	if err != nil {
+		return Result{}, err
 	}
-
-	que := make([]Dir, 0) // queue ds
-	que = append(que, d)
-	workerInput <- d
-	for {
-		if len(done) == 0 && len(que) == 0 {
-			close(workerInput)
-			break
-		}
-		select {
-		case err := <-errorCh:
+	res.Count += int64(len(files))
+	for _, file := range files {
+		size, err := file.Stat(ctx)
+		if err != nil {
 			return Result{}, err
-		case <-done:
-			curDir := que[0]
-			que = que[1:]
-			dirs, _, _ := curDir.Ls(ctx)
-			for _, dir := range dirs {
-				que = append(que, dir)
-				workerInput <- dir
-			}
 		}
+		res.Size += size
 	}
-	wg.Wait()
+	for _, dir := range dirs {
+		p, err := a.Size(ctx, dir)
+		if err != nil {
+			return Result{}, err
+		}
+		res.Size += p.Size
+		res.Count += p.Count
+	}
 	return res, nil
 }
