@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"log"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -33,7 +32,9 @@ func NewSizer() DirSizer {
 	return &sizer{maxWorkersCount: 3}
 }
 
-func startWorker(in <-chan Dir, errch chan<- error, wg *sync.WaitGroup, ctx context.Context, res *Result) {
+func startWorker(ctx context.Context, in <-chan Dir, errch chan<- error, done chan struct{},
+	wg *sync.WaitGroup, res *Result) {
+
 	defer wg.Done()
 	for input := range in {
 		_, files, err := input.Ls(ctx)
@@ -51,37 +52,43 @@ func startWorker(in <-chan Dir, errch chan<- error, wg *sync.WaitGroup, ctx cont
 			atomic.AddInt64(&res.Size, size)
 		}
 		runtime.Gosched()
+		done <- struct{}{}
 	}
 }
 
 func (a *sizer) Size(ctx context.Context, d Dir) (Result, error) {
-	res := &Result{}
-	worketInput := make(chan Dir)
-	errorCh := make(chan error, 1)
-	a.maxWorkersCount = 3
-	var wg sync.WaitGroup
+	res := Result{}
+	workerInput := make(chan Dir)
+	errorCh := make(chan error)
+	done := make(chan struct{})
+	wg := sync.WaitGroup{}
+
 	for i := 0; i < a.maxWorkersCount; i++ {
 		wg.Add(1)
-		go startWorker(worketInput, errorCh, &wg, ctx, res)
+		go startWorker(ctx, workerInput, errorCh, done, &wg, &res)
 	}
-	que := make(chan Dir, 100)
-	que <- d
-	worketInput <- d
-	for len(que) != 0 {
-		curDir := <-que
-		dirs, _, _ := curDir.Ls(ctx)
-		for _, dir := range dirs {
-			que <- dir
-			worketInput <- dir
+
+	que := make([]Dir, 0) // queue ds
+	que = append(que, d)
+	workerInput <- d
+	for {
+		if len(done) == 0 && len(que) == 0 {
+			close(workerInput)
+			break
+		}
+		select {
+		case err := <-errorCh:
+			return Result{}, err
+		case <-done:
+			curDir := que[0]
+			que = que[1:]
+			dirs, _, _ := curDir.Ls(ctx)
+			for _, dir := range dirs {
+				que = append(que, dir)
+				workerInput <- dir
+			}
 		}
 	}
-	close(worketInput)
 	wg.Wait()
-	select {
-	case err := <-errorCh:
-		log.Println(err)
-		return Result{}, err
-	default:
-		return *res, nil
-	}
+	return res, nil
 }
