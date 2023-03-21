@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"runtime"
 	"sync"
 	"sync/atomic"
 )
@@ -51,7 +50,6 @@ func startWorker(ctx context.Context, in <-chan Dir, errch chan<- error, done ch
 			}
 			atomic.AddInt64(&res.Size, size)
 		}
-		runtime.Gosched()
 		done <- struct{}{}
 	}
 }
