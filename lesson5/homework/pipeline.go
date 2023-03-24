@@ -5,6 +5,9 @@ import (
 	"sync"
 )
 
+type any = interface {
+}
+
 type (
 	In  <-chan any
 	Out = In
@@ -18,6 +21,7 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 		inputs  = make([]chan any, 0)
 		outputs = make([]Out, 0)
 		res     = make(chan any)
+		wait    = make(chan struct{})
 		//mu      = sync.Mutex{}
 	)
 	j := 0
@@ -33,6 +37,9 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 			for i := 0; i < len(stages); i++ {
 				outputs[j] = stages[i](input)
 				input = outputs[j]
+				if i == len(stages)-1 {
+					wait <- struct{}{}
+				}
 			}
 		}(inputs[j], j)
 
@@ -45,6 +52,7 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 			close(inputs[j])
 			j++
 		}
+		<-wait
 	}
 
 	wg.Wait()
