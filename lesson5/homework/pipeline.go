@@ -22,7 +22,6 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 		outputs = make([]Out, 0)
 		res     = make(chan any)
 		wait    = make(chan struct{})
-		//mu      = sync.Mutex{}
 	)
 	j := 0
 
