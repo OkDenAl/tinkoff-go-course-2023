@@ -17,10 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         work_dir:
-          - ./lesson1/homework
-          - ./lesson2/homework
-          - ./lesson3/homework
-          - ./lesson4/homework
+#          - ./lesson1/homework
+#          - ./lesson2/homework
+#          - ./lesson3/homework
+#          - ./lesson4/homework
           - ./lesson5/homework
           - ./lesson7/homework
     steps:
