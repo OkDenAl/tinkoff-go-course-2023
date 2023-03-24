@@ -18,7 +18,7 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 		inputs  = make([]chan any, 0)
 		outputs = make([]Out, 0)
 		res     = make(chan any)
-		mu      = sync.Mutex{}
+		//mu      = sync.Mutex{}
 	)
 	j := 0
 
