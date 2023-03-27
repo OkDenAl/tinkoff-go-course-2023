@@ -25,19 +25,18 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 	}
 
 	go func() {
-	Loop:
+		defer close(res)
 		for {
 			select {
 			case <-ctx.Done():
-				break Loop
+				return
 			case data, ok := <-channels[len(stages)]:
 				if !ok {
-					break Loop
+					return
 				}
 				res <- data
 			}
 		}
-		close(res)
 	}()
 	return res
 }
