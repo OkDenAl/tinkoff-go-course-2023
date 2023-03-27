@@ -21,10 +21,8 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 	channels[0] = in
 
 	go func() {
-		select {
-		case <-ctx.Done():
-			close(res)
-		}
+		<-ctx.Done()
+		close(res)
 	}()
 
 	for i := 0; i < len(stages); i++ {
