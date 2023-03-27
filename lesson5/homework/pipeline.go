@@ -20,18 +20,22 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 	}
 	channels[0] = in
 
-	go func() {
-		<-ctx.Done()
-		close(res)
-	}()
-
 	for i := 0; i < len(stages); i++ {
 		channels[i+1] = stages[i](channels[i])
 	}
 
 	go func() {
-		for o := range channels[len(stages)] {
-			res <- o
+	Loop:
+		for {
+			select {
+			case <-ctx.Done():
+				break Loop
+			case o, ok := <-channels[len(stages)]:
+				if !ok {
+					break Loop
+				}
+				res <- o
+			}
 		}
 		close(res)
 	}()
