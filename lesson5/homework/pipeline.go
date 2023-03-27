@@ -12,43 +12,28 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
-	var (
-		inputs  = make([]chan any, 0)
-		outputs = make([]Out, 0)
-		res     = make(chan any)
-		wait    = make(chan struct{})
-	)
+	channels := make([]In, len(stages)+1)
+	res := make(chan any)
 
-	j := 0
-	for a := range in {
-		inputs = append(inputs, make(chan any))
-		outputs = append(outputs, make(chan any))
+	for i := range channels {
+		channels[i] = make(In)
+	}
+	channels[0] = in
 
-		go func(input In, j int) {
-			for i := 0; i < len(stages); i++ {
-				outputs[j] = stages[i](input)
-				input = outputs[j]
-				if i == len(stages)-1 {
-					wait <- struct{}{}
-				}
-			}
-		}(inputs[j], j)
-
+	go func() {
 		select {
 		case <-ctx.Done():
 			close(res)
-			return res
-		default:
-			inputs[j] <- a
-			close(inputs[j])
-			j++
 		}
-		<-wait
+	}()
+
+	for i := 0; i < len(stages); i++ {
+		channels[i+1] = stages[i](channels[i])
 	}
 
 	go func() {
-		for _, ch := range outputs {
-			res <- <-ch
+		for o := range channels[len(stages)] {
+			res <- o
 		}
 		close(res)
 	}()
