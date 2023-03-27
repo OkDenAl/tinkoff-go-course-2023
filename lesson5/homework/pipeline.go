@@ -30,11 +30,11 @@ func ExecutePipeline(ctx context.Context, in In, stages ...Stage) Out {
 			select {
 			case <-ctx.Done():
 				break Loop
-			case o, ok := <-channels[len(stages)]:
+			case data, ok := <-channels[len(stages)]:
 				if !ok {
 					break Loop
 				}
-				res <- o
+				res <- data
 			}
 		}
 		close(res)
