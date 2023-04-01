@@ -217,6 +217,124 @@ func TestValidate(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "valid with []string",
+			args: args{
+				v: struct {
+					InStr  string   `validate:"in:foo,bar"`
+					MinInt int      `validate:"min:10"`
+					A      []string `validate:"max:2"`
+					B      []string `validate:"min:5"`
+					C      []string `validate:"in:ab,bc,k"`
+					D      []string `validate:"len:3"`
+				}{
+					InStr:  "bar",
+					MinInt: 15,
+					A:      []string{"ef", "a", "bc"},
+					B:      []string{"qwert"},
+					C:      []string{"ab", "bc", "k"},
+					D:      []string{"qwe", "abc", "kek"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "wrong with []string",
+			args: args{
+				v: struct {
+					InStr  string   `validate:"in:foo,bar"`
+					MinInt int      `validate:"min:10"`
+					A      []string `validate:"max:2"`
+					B      []string `validate:"min:5"`
+					C      []string `validate:"in:ab,bc,k"`
+					D      []string `validate:"len:3"`
+				}{
+					InStr:  "bar",
+					MinInt: 15,
+					A:      []string{"efe", "ace", "bce"},
+					B:      []string{"qwer"},
+					C:      []string{"aba", "bcc", "kv"},
+					D:      []string{"qwer", "ab", "k"},
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 10)
+				return true
+			},
+		},
+		{
+			name: "valid with []int",
+			args: args{
+				v: struct {
+					InStr  string `validate:"in:foo,bar"`
+					MinInt int    `validate:"min:10"`
+					A      []int  `validate:"max:2"`
+					B      []int  `validate:"min:5"`
+					C      []int  `validate:"in:2,5,10"`
+				}{
+					InStr:  "bar",
+					MinInt: 15,
+					A:      []int{1, 0, -1},
+					B:      []int{10, 20, 5},
+					C:      []int{2, 5, 10},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "wrong with []int",
+			args: args{
+				v: struct {
+					InStr  string `validate:"in:foo,bar"`
+					MinInt int    `validate:"min:10"`
+					A      []int  `validate:"max:2"`
+					B      []int  `validate:"min:5"`
+					C      []int  `validate:"in:2,5,10"`
+				}{
+					InStr:  "bar",
+					MinInt: 15,
+					A:      []int{3, 10, 6},
+					B:      []int{-10, -20, -5},
+					C:      []int{20, 50, 100},
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 9)
+				return true
+			},
+		},
+		{
+			name: "wrong with len validator with int field",
+			args: args{
+				v: struct {
+					MinInt int   `validate:"len:10"`
+					A      []int `validate:"len:2"`
+				}{
+					MinInt: 15,
+					A:      []int{3, 10, 6},
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 4)
+				return true
+			},
+		},
+		{
+			name: "wrong with unsupported validator field type",
+			args: args{
+				v: struct {
+					MinInt float32 `validate:"len:10"`
+				}{},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				e := &ValidationErrors{}
+				return errors.As(err, e) && e.Error() == ErrUnsupportedFieldValueType.Error()
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
