@@ -60,27 +60,26 @@ func Validate(v any) error {
 			continue
 		}
 
-		fildValueType := values.Field(i).Interface().(type)
-		switch fildValueType {
+		switch fildValue := values.Field(i).Interface().(type) {
 		case string:
-			err := stringValidator.IsFieldValid(fildValue.(string), curValidateTag)
+			err := stringValidator.IsFieldValid(fildValue, curValidateTag)
 			if err != nil {
 				errArr = append(errArr, ValidationError{err})
 			}
 		case int:
-			err := intValidator.IsFieldValid(fildValue.(int), curValidateTag)
+			err := intValidator.IsFieldValid(fildValue, curValidateTag)
 			if err != nil {
 				errArr = append(errArr, ValidationError{err})
 			}
 		case []int:
-			for _, val := range fildValue.([]int) {
+			for _, val := range fildValue {
 				err := intValidator.IsFieldValid(val, curValidateTag)
 				if err != nil {
 					errArr = append(errArr, ValidationError{err})
 				}
 			}
 		case []string:
-			for _, val := range fildValue.([]string) {
+			for _, val := range fildValue {
 				err := stringValidator.IsFieldValid(val, curValidateTag)
 				if err != nil {
 					errArr = append(errArr, ValidationError{err})
