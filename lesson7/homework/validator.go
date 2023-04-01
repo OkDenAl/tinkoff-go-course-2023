@@ -60,8 +60,8 @@ func Validate(v any) error {
 			continue
 		}
 
-		fildValue := values.Field(i).Interface()
-		switch fildValue.(type) {
+		fildValueType := values.Field(i).Interface().(type)
+		switch fildValueType {
 		case string:
 			err := stringValidator.IsFieldValid(fildValue.(string), curValidateTag)
 			if err != nil {
