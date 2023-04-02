@@ -18,25 +18,29 @@ var (
 )
 
 type ValidationError struct {
-	Err error
+	FieldName string
+	Err       error
 }
 
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
 	var s string
+	if len(v) == 1 {
+		return v[0].Err.Error()
+	}
 	for _, err := range v {
-		s += err.Err.Error()
+		s += "FieldName: " + err.FieldName + "\t" + "Error: " + err.Err.Error() + "\n"
 	}
 	return s
 }
 
 func checkValidatorTag(curValidateTag string, dt reflect.Type, ind int) *ValidationError {
 	if !(dt.Field(ind).IsExported()) {
-		return &ValidationError{Err: ErrValidateForUnexportedFields}
+		return &ValidationError{Err: ErrValidateForUnexportedFields, FieldName: dt.Field(ind).Name}
 	}
 	if !utils.IsValidatorSyntaxCorrect(curValidateTag) {
-		return &ValidationError{ErrInvalidValidatorSyntax}
+		return &ValidationError{Err: ErrInvalidValidatorSyntax, FieldName: dt.Field(ind).Name}
 	}
 	return nil
 }
@@ -51,6 +55,7 @@ func Validate(v any) error {
 
 	for i := 0; i < values.NumField(); i++ {
 		curValidateTag := dt.Field(i).Tag.Get(TagName)
+		curFieldName := dt.Field(i).Name
 
 		if curValidateTag == "" {
 			continue
@@ -60,33 +65,33 @@ func Validate(v any) error {
 			continue
 		}
 
-		switch fildValue := values.Field(i).Interface().(type) {
+		switch fieldValue := values.Field(i).Interface().(type) {
 		case string:
-			err := stringValidator.IsFieldValid(fildValue, curValidateTag)
+			err := stringValidator.IsFieldValid(fieldValue, curValidateTag)
 			if err != nil {
-				errArr = append(errArr, ValidationError{err})
+				errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 			}
 		case int:
-			err := intValidator.IsFieldValid(fildValue, curValidateTag)
+			err := intValidator.IsFieldValid(fieldValue, curValidateTag)
 			if err != nil {
-				errArr = append(errArr, ValidationError{err})
+				errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 			}
 		case []int:
-			for _, val := range fildValue {
+			for _, val := range fieldValue {
 				err := intValidator.IsFieldValid(val, curValidateTag)
 				if err != nil {
-					errArr = append(errArr, ValidationError{err})
+					errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 				}
 			}
 		case []string:
-			for _, val := range fildValue {
+			for _, val := range fieldValue {
 				err := stringValidator.IsFieldValid(val, curValidateTag)
 				if err != nil {
-					errArr = append(errArr, ValidationError{err})
+					errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 				}
 			}
 		default:
-			errArr = append(errArr, ValidationError{ErrUnsupportedFieldValueType})
+			errArr = append(errArr, ValidationError{Err: ErrUnsupportedFieldValueType, FieldName: curFieldName})
 		}
 	}
 
