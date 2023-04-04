@@ -3,8 +3,7 @@ package homework
 import (
 	"github.com/pkg/errors"
 	"homework/utils"
-	"homework/validators/intValidator"
-	"homework/validators/stringValidator"
+	"homework/validators"
 	"reflect"
 )
 
@@ -48,7 +47,7 @@ func checkValidatorTag(curValidateTag string, dt reflect.Type, ind int) *Validat
 func Validate(v any) error {
 	errArr := make(ValidationErrors, 0)
 	dt := reflect.TypeOf(v)
-	if dt.Kind().String() != "struct" {
+	if dt.Kind() != reflect.Struct {
 		return ErrNotStruct
 	}
 	values := reflect.ValueOf(v)
@@ -67,25 +66,25 @@ func Validate(v any) error {
 
 		switch fieldValue := values.Field(i).Interface().(type) {
 		case string:
-			err := stringValidator.IsFieldValid(fieldValue, curValidateTag)
+			err := validators.IsStringFieldValid(fieldValue, curValidateTag)
 			if err != nil {
 				errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 			}
 		case int:
-			err := intValidator.IsFieldValid(fieldValue, curValidateTag)
+			err := validators.IsIntFieldValid(fieldValue, curValidateTag)
 			if err != nil {
 				errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 			}
 		case []int:
 			for _, val := range fieldValue {
-				err := intValidator.IsFieldValid(val, curValidateTag)
+				err := validators.IsIntFieldValid(val, curValidateTag)
 				if err != nil {
 					errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 				}
 			}
 		case []string:
 			for _, val := range fieldValue {
-				err := stringValidator.IsFieldValid(val, curValidateTag)
+				err := validators.IsStringFieldValid(val, curValidateTag)
 				if err != nil {
 					errArr = append(errArr, ValidationError{Err: err, FieldName: curFieldName})
 				}
