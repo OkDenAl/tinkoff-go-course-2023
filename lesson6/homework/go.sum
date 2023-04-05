@@ -1,3 +1,5 @@
+github.com/OkDenAl/validator v0.1.0 h1:390Z5eeRJHGpXCNb9zcN43RulzN3E9VrRQ9hgs5I1fs=
+github.com/OkDenAl/validator v0.1.0/go.mod h1:ntD7tXzHhGHDMFc98jzRomd27iJ14vmSELqGrQv6HG4=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/gofiber/fiber/v2 v2.43.0 h1:yit3E4kHf178B60p5CQBa/3v+WVuziWMa/G2ZNyLJB0=
