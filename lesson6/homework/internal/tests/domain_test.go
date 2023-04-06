@@ -2,6 +2,7 @@ package tests
 
 import (
 	"errors"
+	"log"
 	"testing"
 
 	"homework6/internal/adapters/adrepo"
@@ -52,6 +53,7 @@ func TestCreateAd_ID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
+	log.Println(respTwo)
 	if respTwo.Data.ID != 1 {
 		t.Errorf("invalid id")
 	}
