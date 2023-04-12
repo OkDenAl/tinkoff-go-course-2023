@@ -3,6 +3,7 @@ package main
 import (
 	"homework8/internal/adapters/adrepo"
 	"homework8/internal/app"
+	"homework8/internal/ports/httpfiber"
 )
 
 func main() {
