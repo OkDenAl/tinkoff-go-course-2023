@@ -2,37 +2,59 @@ package adrepo
 
 import (
 	"context"
+	"errors"
 	"homework8/internal/ads"
 	"homework8/internal/app"
 )
 
+var (
+	ErrInvalidAdId    = errors.New("cant find this id in map")
+	ErrInvalidAdTitle = errors.New("cant find this id in map")
+)
+
 type repository struct {
-	data           map[int64]*ads.Ad
+	adDataById     map[int64]*ads.Ad
+	adDataByTitle  map[string]*ads.Ad
 	curIdGenerator int64
 }
 
 func New() app.Repository {
-	return &repository{data: make(map[int64]*ads.Ad), curIdGenerator: 0}
+	return &repository{adDataById: make(map[int64]*ads.Ad), adDataByTitle: make(map[string]*ads.Ad), curIdGenerator: 0}
 }
 
 func (r *repository) AddAd(ctx context.Context, ad *ads.Ad) (int64, error) {
 	ad.ID = r.curIdGenerator
-	r.data[r.curIdGenerator] = ad
+
+	r.adDataById[r.curIdGenerator] = ad
+	r.adDataByTitle[ad.Title] = ad
+
 	r.curIdGenerator++
 	return ad.ID, nil
 }
 
-func (r *repository) GetAd(ctx context.Context, adId int64) (*ads.Ad, error) {
-	return r.data[adId], nil
+func (r *repository) GetAdById(ctx context.Context, adId int64) (*ads.Ad, error) {
+	ad, ok := r.adDataById[adId]
+	if !ok {
+		return nil, ErrInvalidAdId
+	}
+	return ad, nil
+}
+
+func (r *repository) GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error) {
+	ad, ok := r.adDataByTitle[title]
+	if !ok {
+		return nil, ErrInvalidAdTitle
+	}
+	return ad, nil
 }
 
 func (r *repository) UpdateAdStatus(ctx context.Context, adId int64, newStatus bool) (*ads.Ad, error) {
-	r.data[adId].Published = newStatus
-	return r.data[adId], nil
+	r.adDataById[adId].Published = newStatus
+	return r.adDataById[adId], nil
 }
 
 func (r *repository) UpdateAdTitleAndText(ctx context.Context, adId int64, newTitle, newText string) (*ads.Ad, error) {
-	r.data[adId].Text = newText
-	r.data[adId].Title = newTitle
-	return r.data[adId], nil
+	r.adDataById[adId].Text = newText
+	r.adDataById[adId].Title = newTitle
+	return r.adDataById[adId], nil
 }

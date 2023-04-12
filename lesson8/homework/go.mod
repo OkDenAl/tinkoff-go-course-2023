@@ -6,13 +6,10 @@ require (
 	github.com/OkDenAl/validator v0.1.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/gofiber/fiber/v2 v2.43.0
-	github.com/ilyakaznacheev/cleanenv v1.4.2
-	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
 )
 
 require (
-	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/bytedance/sonic v1.8.7 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

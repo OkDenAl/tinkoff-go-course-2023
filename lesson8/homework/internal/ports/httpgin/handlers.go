@@ -5,6 +5,7 @@ import (
 	"homework8/internal/ads"
 	"homework8/internal/app"
 	"net/http"
+	"strconv"
 )
 
 func createAd(a app.App) gin.HandlerFunc {
@@ -29,6 +30,32 @@ func createAd(a app.App) gin.HandlerFunc {
 	}
 }
 
+func getAdById(a app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		adId, _ := strconv.Atoi(c.Param("ad_id"))
+		ad, err := a.GetAdById(c, int64(adId))
+		if err != nil {
+			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			return
+		}
+		c.JSON(http.StatusOK, AdSuccessResponse(ad))
+		return
+	}
+}
+
+func getAdByTitle(a app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		title := c.Param("title")
+		ad, err := a.GetAdByTitle(c, title)
+		if err != nil {
+			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			return
+		}
+		c.JSON(http.StatusOK, AdSuccessResponse(ad))
+		return
+	}
+}
+
 func changeAdStatus(a app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody changeAdStatusRequest
@@ -36,8 +63,8 @@ func changeAdStatus(a app.App) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, AdErrorResponse(err))
 			return
 		}
-		id := c.GetInt64("ad_id")
-		ad, err := a.ChangeAdStatus(c, id, reqBody.UserID, reqBody.Published)
+		adId, _ := strconv.Atoi(c.Param("ad_id"))
+		ad, err := a.ChangeAdStatus(c, int64(adId), reqBody.UserID, reqBody.Published)
 		if err != nil {
 			switch err {
 			case ads.ErrUserCantChangeThisAd:
@@ -59,8 +86,8 @@ func updateAd(a app.App) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, AdErrorResponse(err))
 			return
 		}
-		id := c.GetInt64("ad_id")
-		ad, err := a.UpdateAd(c, id, reqBody.UserID, reqBody.Title, reqBody.Text)
+		adId, _ := strconv.Atoi(c.Param("ad_id"))
+		ad, err := a.UpdateAd(c, int64(adId), reqBody.UserID, reqBody.Title, reqBody.Text)
 		if err != nil {
 			switch err {
 			case ads.ErrUserCantChangeThisAd:

@@ -14,11 +14,13 @@ import (
 )
 
 type adData struct {
-	ID        int64  `json:"id"`
-	Title     string `json:"title"`
-	Text      string `json:"text"`
-	AuthorID  int64  `json:"author_id"`
-	Published bool   `json:"published"`
+	ID           int64  `json:"id"`
+	Title        string `json:"title"`
+	Text         string `json:"text"`
+	AuthorID     int64  `json:"author_id"`
+	CreationDate string `json:"creation_date"`
+	UpdateDate   string `json:"update_date"`
+	Published    bool   `json:"published"`
 }
 
 type adResponse struct {
@@ -32,6 +34,7 @@ type adsResponse struct {
 var (
 	ErrBadRequest = fmt.Errorf("bad request")
 	ErrForbidden  = fmt.Errorf("forbidden")
+	ErrNotFound   = fmt.Errorf("not found")
 )
 
 type testClient struct {
@@ -58,6 +61,9 @@ func (tc *testClient) getResponse(req *http.Request, out any) error {
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusBadRequest {
 			return ErrBadRequest
+		}
+		if resp.StatusCode == http.StatusNotFound {
+			return ErrNotFound
 		}
 		if resp.StatusCode == http.StatusForbidden {
 			return ErrForbidden
@@ -145,7 +151,43 @@ func (tc *testClient) updateAd(userID int64, adID int64, title string, text stri
 		return adResponse{}, fmt.Errorf("unable to marshal: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf(tc.baseURL+"/api/v1/ads/%d", adID), bytes.NewReader(data))
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf(tc.baseURL+"/api/v1/ads/%d/text", adID), bytes.NewReader(data))
+	if err != nil {
+		return adResponse{}, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	var response adResponse
+	err = tc.getResponse(req, &response)
+	if err != nil {
+		return adResponse{}, err
+	}
+
+	return response, nil
+}
+
+func (tc *testClient) getAdById(adID int64) (adResponse, error) {
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(tc.baseURL+"/api/v1/ads/id/%d", adID), nil)
+	if err != nil {
+		return adResponse{}, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	var response adResponse
+	err = tc.getResponse(req, &response)
+	if err != nil {
+		return adResponse{}, err
+	}
+
+	return response, nil
+}
+
+func (tc *testClient) getAdByTitle(title string) (adResponse, error) {
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(tc.baseURL+"/api/v1/ads/title/%s", title), nil)
 	if err != nil {
 		return adResponse{}, fmt.Errorf("unable to create request: %w", err)
 	}
