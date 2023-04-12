@@ -1,6 +1,7 @@
 package httpgin
 
 import (
+	"homework8/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,15 @@ type Server struct {
 
 func NewHTTPServer(port string, a app.App) Server {
 	gin.SetMode(gin.ReleaseMode)
+	gin.Default()
 	s := Server{port: port, app: gin.New()}
 
-	// todo: add your own logic
+	log := logger.InitLog()
+
+	api := s.app.Group("/api/v1", Logger(log), gin.Recovery())
+	{
+		AppRouter(api, a)
+	}
 
 	return s
 }
