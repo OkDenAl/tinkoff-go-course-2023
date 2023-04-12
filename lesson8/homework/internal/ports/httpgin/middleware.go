@@ -13,6 +13,7 @@ func Logger(log logger.Logger) gin.HandlerFunc {
 		latency := time.Since(t)
 		status := c.Writer.Status()
 
-		log.Info("latency", latency, "method", c.Request.Method, "path", c.Request.URL.Path, "status", status)
+		log.Info("Latency:", latency, "\tMethod:", c.Request.Method, "\tPath:",
+			c.Request.URL.Path, "\tStatus:", status)
 	}
 }

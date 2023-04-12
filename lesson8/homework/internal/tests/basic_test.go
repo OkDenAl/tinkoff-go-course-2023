@@ -15,6 +15,8 @@ func TestCreateAd(t *testing.T) {
 	assert.Equal(t, response.Data.Title, "hello")
 	assert.Equal(t, response.Data.Text, "world")
 	assert.Equal(t, response.Data.AuthorID, int64(123))
+	assert.Equal(t, response.Data.CreationDate, "2023-04-12")
+	assert.Equal(t, response.Data.UpdateDate, "")
 	assert.False(t, response.Data.Published)
 }
 
@@ -26,6 +28,8 @@ func TestChangeAdStatus(t *testing.T) {
 
 	response, err = client.changeAdStatus(123, response.Data.ID, true)
 	assert.NoError(t, err)
+	assert.Equal(t, response.Data.CreationDate, "2023-04-12")
+	assert.Equal(t, response.Data.UpdateDate, "2023-04-12")
 	assert.True(t, response.Data.Published)
 
 	response, err = client.changeAdStatus(123, response.Data.ID, false)
@@ -45,8 +49,40 @@ func TestUpdateAd(t *testing.T) {
 
 	response, err = client.updateAd(123, response.Data.ID, "привет", "мир")
 	assert.NoError(t, err)
+	assert.Equal(t, response.Data.CreationDate, "2023-04-12")
+	assert.Equal(t, response.Data.UpdateDate, "2023-04-12")
 	assert.Equal(t, response.Data.Title, "привет")
 	assert.Equal(t, response.Data.Text, "мир")
+}
+
+func TestGetAdById(t *testing.T) {
+	client := getTestClient()
+
+	_, err := client.createAd(123, "hello", "world")
+	assert.NoError(t, err)
+	_, err = client.createAd(1, "hi", "tinkoff")
+	assert.NoError(t, err)
+
+	response, err := client.getAdById(1)
+	assert.NoError(t, err)
+	assert.Equal(t, response.Data.CreationDate, "2023-04-12")
+	assert.Equal(t, response.Data.Title, "hi")
+	assert.Equal(t, response.Data.Text, "tinkoff")
+}
+
+func TestGetAdByTitle(t *testing.T) {
+	client := getTestClient()
+
+	_, err := client.createAd(123, "hello", "world")
+	assert.NoError(t, err)
+	_, err = client.createAd(1, "hi", "tinkoff")
+	assert.NoError(t, err)
+
+	response, err := client.getAdByTitle("hi")
+	assert.NoError(t, err)
+	assert.Equal(t, response.Data.CreationDate, "2023-04-12")
+	assert.Equal(t, response.Data.Text, "tinkoff")
+	assert.Equal(t, response.Data.ID, int64(1))
 }
 
 func TestListAds(t *testing.T) {

@@ -12,11 +12,13 @@ type createAdRequest struct {
 }
 
 type adResponse struct {
-	ID        int64  `json:"id"`
-	Title     string `json:"title"`
-	Text      string `json:"text"`
-	AuthorID  int64  `json:"author_id"`
-	Published bool   `json:"published"`
+	ID           int64  `json:"id"`
+	Title        string `json:"title"`
+	Text         string `json:"text"`
+	AuthorID     int64  `json:"author_id"`
+	CreationDate string `json:"creation_date"`
+	UpdateDate   string `json:"update_date"`
+	Published    bool   `json:"published"`
 }
 
 type changeAdStatusRequest struct {
@@ -33,11 +35,13 @@ type updateAdRequest struct {
 func AdSuccessResponse(ad *ads.Ad) *gin.H {
 	return &gin.H{
 		"data": adResponse{
-			ID:        ad.ID,
-			Title:     ad.Title,
-			Text:      ad.Text,
-			AuthorID:  ad.AuthorID,
-			Published: ad.Published,
+			ID:           ad.ID,
+			Title:        ad.Title,
+			Text:         ad.Text,
+			AuthorID:     ad.AuthorID,
+			Published:    ad.Published,
+			CreationDate: ad.CreationDate,
+			UpdateDate:   ad.UpdateDate,
 		},
 		"error": nil,
 	}
