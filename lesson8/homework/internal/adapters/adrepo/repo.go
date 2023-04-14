@@ -3,13 +3,12 @@ package adrepo
 import (
 	"context"
 	"errors"
-	"homework8/internal/ads"
-	"homework8/internal/app"
+	"homework8/internal/entities/ads"
 )
 
 var (
 	ErrInvalidAdId    = errors.New("cant find this id in map")
-	ErrInvalidAdTitle = errors.New("cant find this id in map")
+	ErrInvalidAdTitle = errors.New("cant find this title in map")
 )
 
 type repository struct {
@@ -18,7 +17,7 @@ type repository struct {
 	curIdGenerator int64
 }
 
-func New() app.Repository {
+func New() ads.Repository {
 	return &repository{adDataById: make(map[int64]*ads.Ad), adDataByTitle: make(map[string]*ads.Ad), curIdGenerator: 0}
 }
 

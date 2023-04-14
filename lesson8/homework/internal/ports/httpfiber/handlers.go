@@ -2,12 +2,12 @@ package httpfiber
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"homework8/internal/ads"
-	"homework8/internal/app"
+	"homework8/internal/app/adapp"
+	"homework8/internal/entities/ads"
 	"net/http"
 )
 
-func createAd(a app.App) fiber.Handler {
+func createAd(a adapp.App) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var reqBody createAdRequest
 		err := c.BodyParser(&reqBody)
@@ -31,7 +31,7 @@ func createAd(a app.App) fiber.Handler {
 }
 
 // Метод для изменения статуса объявления (опубликовано - Published = true или снято с публикации Published = false)
-func changeAdStatus(a app.App) fiber.Handler {
+func changeAdStatus(a adapp.App) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var reqBody changeAdStatusRequest
 		if err := c.BodyParser(&reqBody); err != nil {
@@ -61,7 +61,7 @@ func changeAdStatus(a app.App) fiber.Handler {
 }
 
 // Метод для обновления текста(Text) или заголовка(Title) объявления
-func updateAd(a app.App) fiber.Handler {
+func updateAd(a adapp.App) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var reqBody updateAdRequest
 		if err := c.BodyParser(&reqBody); err != nil {

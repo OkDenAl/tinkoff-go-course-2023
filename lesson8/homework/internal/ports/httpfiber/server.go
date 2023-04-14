@@ -2,7 +2,7 @@ package httpfiber
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"homework8/internal/app"
+	"homework8/internal/app/adapp"
 	"net/http"
 )
 
@@ -11,7 +11,7 @@ type Server struct {
 	app  *fiber.App
 }
 
-func NewHTTPServer(port string, a app.App) Server {
+func NewHTTPServer(port string, a adapp.App) Server {
 	s := Server{port: port, app: fiber.New()}
 	api := s.app.Group("/api/v1")
 	AppRouter(api, a)

@@ -1,12 +1,13 @@
 package httpgin
 
 import (
+	"homework8/internal/app/adapp"
+	"homework8/internal/app/userapp"
+	"homework8/internal/ports/httpgin/adsadapter"
 	"homework8/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"homework8/internal/app"
 )
 
 type Server struct {
@@ -14,7 +15,7 @@ type Server struct {
 	app  *gin.Engine
 }
 
-func NewHTTPServer(port string, a app.App) Server {
+func NewHTTPServer(port string, ad adapp.App, user userapp.App) Server {
 	gin.SetMode(gin.ReleaseMode)
 	gin.Default()
 	s := Server{port: port, app: gin.New()}
@@ -23,7 +24,7 @@ func NewHTTPServer(port string, a app.App) Server {
 
 	api := s.app.Group("/api/v1", Logger(log), gin.Recovery())
 	{
-		AppRouter(api, a)
+		adsadapter.AppRouter(api, ad)
 	}
 
 	return s
