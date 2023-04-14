@@ -175,7 +175,32 @@ func (tc *testClient) changeNickname(userID int64, nickname string) (userRespons
 	if err != nil {
 		return userResponse{}, err
 	}
+	return response, nil
+}
 
+func (tc *testClient) updatePassword(userID int64, password string) (userResponse, error) {
+	body := map[string]any{
+		"id":       userID,
+		"password": password,
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to marshal: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf(tc.baseURL+"/api/v1/user/%d/password", userID), bytes.NewReader(data))
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	var response userResponse
+	err = tc.getResponse(req, &response)
+	if err != nil {
+		return userResponse{}, err
+	}
 	return response, nil
 }
 
