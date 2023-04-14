@@ -1,14 +1,14 @@
-package httpgin
+package adsadapter
 
 import (
 	"github.com/gin-gonic/gin"
-	"homework8/internal/ads"
-	"homework8/internal/app"
+	"homework8/internal/app/adapp"
+	"homework8/internal/entities/ads"
 	"net/http"
 	"strconv"
 )
 
-func createAd(a app.App) gin.HandlerFunc {
+func createAd(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody createAdRequest
 		if err := c.BindJSON(&reqBody); err != nil {
@@ -30,7 +30,7 @@ func createAd(a app.App) gin.HandlerFunc {
 	}
 }
 
-func getAdById(a app.App) gin.HandlerFunc {
+func getAdById(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		adId, _ := strconv.Atoi(c.Param("ad_id"))
 		ad, err := a.GetAdById(c, int64(adId))
@@ -43,7 +43,7 @@ func getAdById(a app.App) gin.HandlerFunc {
 	}
 }
 
-func getAdByTitle(a app.App) gin.HandlerFunc {
+func getAdByTitle(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		title := c.Param("title")
 		ad, err := a.GetAdByTitle(c, title)
@@ -56,7 +56,20 @@ func getAdByTitle(a app.App) gin.HandlerFunc {
 	}
 }
 
-func changeAdStatus(a app.App) gin.HandlerFunc {
+func getAllAds(a adapp.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		title := c.Param("title")
+		ad, err := a.GetAdByTitle(c, title)
+		if err != nil {
+			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			return
+		}
+		c.JSON(http.StatusOK, AdSuccessResponse(ad))
+		return
+	}
+}
+
+func changeAdStatus(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody changeAdStatusRequest
 		if err := c.BindJSON(&reqBody); err != nil {
@@ -79,7 +92,7 @@ func changeAdStatus(a app.App) gin.HandlerFunc {
 	}
 }
 
-func updateAd(a app.App) gin.HandlerFunc {
+func updateAd(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody updateAdRequest
 		if err := c.BindJSON(&reqBody); err != nil {

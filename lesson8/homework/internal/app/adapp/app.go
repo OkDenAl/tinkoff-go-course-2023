@@ -1,8 +1,8 @@
-package app
+package adapp
 
 import (
 	"context"
-	"homework8/internal/ads"
+	"homework8/internal/entities/ads"
 	"time"
 )
 
@@ -15,10 +15,10 @@ type App interface {
 }
 
 type app struct {
-	repo Repository
+	repo ads.Repository
 }
 
-func NewApp(repo Repository) App {
+func NewApp(repo ads.Repository) App {
 	return app{repo: repo}
 }
 
@@ -97,12 +97,4 @@ func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText
 		return nil, err
 	}
 	return ad, err
-}
-
-type Repository interface {
-	AddAd(ctx context.Context, ad *ads.Ad) (int64, error)
-	GetAdById(ctx context.Context, adId int64) (*ads.Ad, error)
-	GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error)
-	UpdateAdStatus(ctx context.Context, adId int64, newStatus bool) (*ads.Ad, error)
-	UpdateAdTitleAndText(ctx context.Context, adId int64, newTitle, newText string) (*ads.Ad, error)
 }
