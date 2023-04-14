@@ -33,6 +33,17 @@ type adsResponse struct {
 	Data []adData `json:"data"`
 }
 
+type userData struct {
+	Id       int64  `json:"id"`
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type userResponse struct {
+	Data userData `json:"data"`
+}
+
 var (
 	ErrBadRequest = fmt.Errorf("bad request")
 	ErrForbidden  = fmt.Errorf("forbidden")
@@ -109,6 +120,60 @@ func (tc *testClient) createAd(userID int64, title string, text string) (adRespo
 	err = tc.getResponse(req, &response)
 	if err != nil {
 		return adResponse{}, err
+	}
+
+	return response, nil
+}
+
+func (tc *testClient) createUser(nick, email, pass string) (userResponse, error) {
+	body := map[string]any{
+		"nickname": nick,
+		"email":    email,
+		"password": pass,
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to marshal: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, tc.baseURL+"/api/v1/user", bytes.NewReader(data))
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	var response userResponse
+	err = tc.getResponse(req, &response)
+	if err != nil {
+		return userResponse{}, err
+	}
+	return response, nil
+}
+
+func (tc *testClient) changeNickname(userID int64, nickname string) (userResponse, error) {
+	body := map[string]any{
+		"id":       userID,
+		"nickname": nickname,
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to marshal: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf(tc.baseURL+"/api/v1/user/%d/nick", userID), bytes.NewReader(data))
+	if err != nil {
+		return userResponse{}, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	var response userResponse
+	err = tc.getResponse(req, &response)
+	if err != nil {
+		return userResponse{}, err
 	}
 
 	return response, nil

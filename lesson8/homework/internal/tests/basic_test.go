@@ -21,6 +21,17 @@ func TestCreateAd(t *testing.T) {
 	assert.False(t, response.Data.Published)
 }
 
+func TestCreateUser(t *testing.T) {
+	client := getTestClient()
+
+	response, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+	assert.Zero(t, response.Data.Id)
+	assert.Equal(t, response.Data.Email, "hello@gmail.com")
+	assert.Equal(t, response.Data.Nickname, "test")
+	assert.Equal(t, response.Data.Password, "")
+}
+
 func TestChangeAdStatus(t *testing.T) {
 	client := getTestClient()
 
@@ -84,6 +95,21 @@ func TestGetAdByTitle(t *testing.T) {
 	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
 	assert.Equal(t, response.Data.Text, "tinkoff")
 	assert.Equal(t, response.Data.ID, int64(1))
+}
+
+func TestChangeNickname(t *testing.T) {
+	client := getTestClient()
+
+	response, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+
+	response, err = client.changeNickname(0, "denis")
+	assert.NoError(t, err)
+	assert.Equal(t, response.Data.Nickname, "denis")
+
+	response, err = client.changeNickname(0, "denis")
+	assert.NoError(t, err)
+	assert.Equal(t, response.Data.Nickname, "denis")
 }
 
 func TestListAds(t *testing.T) {
