@@ -112,6 +112,16 @@ func TestChangeNickname(t *testing.T) {
 	assert.Equal(t, response.Data.Nickname, "denis")
 }
 
+func TestUpdatePassword(t *testing.T) {
+	client := getTestClient()
+
+	response, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+
+	_, err = client.updatePassword(response.Data.Id, "denis")
+	assert.NoError(t, err)
+}
+
 func TestListAds(t *testing.T) {
 	client := getTestClient()
 

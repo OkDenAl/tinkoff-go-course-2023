@@ -27,7 +27,6 @@ func createAd(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }
 
@@ -45,7 +44,6 @@ func getAdById(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }
 
@@ -63,7 +61,6 @@ func getAdByTitle(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }
 
@@ -76,7 +73,6 @@ func getAllAds(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }
 
@@ -103,7 +99,6 @@ func changeAdStatus(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }
 
@@ -130,6 +125,5 @@ func updateAd(a adapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
-		return
 	}
 }

@@ -3,6 +3,7 @@ package adapp
 import (
 	"context"
 	"homework8/internal/entities/ads"
+	"homework8/internal/entities/user"
 	"time"
 )
 
@@ -15,7 +16,8 @@ type App interface {
 }
 
 type app struct {
-	repo ads.Repository
+	repo     ads.Repository
+	userRepo *user.Repository
 }
 
 func NewApp(repo ads.Repository) App {

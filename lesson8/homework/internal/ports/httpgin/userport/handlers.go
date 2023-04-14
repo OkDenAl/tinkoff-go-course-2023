@@ -28,7 +28,6 @@ func createUser(u userapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, UserSuccessResponse(us))
-		return
 	}
 }
 
@@ -54,7 +53,6 @@ func changeNickname(u userapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, UserSuccessResponse(us))
-		return
 	}
 }
 
@@ -80,6 +78,5 @@ func updatePassword(u userapp.App) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, UserSuccessResponse(us))
-		return
 	}
 }
