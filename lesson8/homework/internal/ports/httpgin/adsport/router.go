@@ -1,4 +1,4 @@
-package adsadapter
+package adsport
 
 import (
 	"github.com/gin-gonic/gin"

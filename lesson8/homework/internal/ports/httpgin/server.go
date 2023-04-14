@@ -3,7 +3,8 @@ package httpgin
 import (
 	"homework8/internal/app/adapp"
 	"homework8/internal/app/userapp"
-	"homework8/internal/ports/httpgin/adsadapter"
+	"homework8/internal/ports/httpgin/adsport"
+	"homework8/internal/ports/httpgin/userport"
 	"homework8/pkg/logger"
 	"net/http"
 
@@ -24,7 +25,8 @@ func NewHTTPServer(port string, ad adapp.App, user userapp.App) Server {
 
 	api := s.app.Group("/api/v1", Logger(log), gin.Recovery())
 	{
-		adsadapter.AppRouter(api, ad)
+		adsport.AppRouter(api, ad)
+		userport.AppRouter(api, user)
 	}
 
 	return s

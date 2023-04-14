@@ -14,6 +14,9 @@ func TestChangeStatusAdOfAnotherUser(t *testing.T) {
 
 	_, err = client.changeAdStatus(100, resp.Data.ID, true)
 	assert.ErrorIs(t, err, ErrForbidden)
+
+	_, err = client.changeAdStatus(123, 100, true)
+	assert.ErrorIs(t, err, ErrNotFound)
 }
 
 func TestUpdateAdOfAnotherUser(t *testing.T) {
@@ -24,6 +27,9 @@ func TestUpdateAdOfAnotherUser(t *testing.T) {
 
 	_, err = client.updateAd(100, resp.Data.ID, "title", "text")
 	assert.ErrorIs(t, err, ErrForbidden)
+
+	_, err = client.updateAd(123, 100, "title", "text")
+	assert.ErrorIs(t, err, ErrNotFound)
 }
 
 func TestCreateAd_ID(t *testing.T) {

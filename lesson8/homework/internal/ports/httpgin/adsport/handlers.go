@@ -1,7 +1,8 @@
-package adsadapter
+package adsport
 
 import (
 	"github.com/gin-gonic/gin"
+	"homework8/internal/adapters/adrepo"
 	"homework8/internal/app/adapp"
 	"homework8/internal/entities/ads"
 	"net/http"
@@ -35,7 +36,12 @@ func getAdById(a adapp.App) gin.HandlerFunc {
 		adId, _ := strconv.Atoi(c.Param("ad_id"))
 		ad, err := a.GetAdById(c, int64(adId))
 		if err != nil {
-			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			switch err {
+			case adrepo.ErrInvalidAdId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
+			}
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
@@ -48,7 +54,12 @@ func getAdByTitle(a adapp.App) gin.HandlerFunc {
 		title := c.Param("title")
 		ad, err := a.GetAdByTitle(c, title)
 		if err != nil {
-			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			switch err {
+			case adrepo.ErrInvalidAdId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
+			}
 			return
 		}
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
@@ -82,6 +93,10 @@ func changeAdStatus(a adapp.App) gin.HandlerFunc {
 			switch err {
 			case ads.ErrUserCantChangeThisAd:
 				c.JSON(http.StatusForbidden, AdErrorResponse(err))
+			case adrepo.ErrInvalidAdId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			case ads.ErrInvalidAdParams:
+				c.JSON(http.StatusBadRequest, AdErrorResponse(err))
 			default:
 				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
 			}
@@ -107,6 +122,8 @@ func updateAd(a adapp.App) gin.HandlerFunc {
 				c.JSON(http.StatusForbidden, AdErrorResponse(err))
 			case ads.ErrInvalidAdParams:
 				c.JSON(http.StatusBadRequest, AdErrorResponse(err))
+			case adrepo.ErrInvalidAdId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			default:
 				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
 			}
