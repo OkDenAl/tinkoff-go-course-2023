@@ -9,26 +9,36 @@ import (
 func TestChangeStatusAdOfAnotherUser(t *testing.T) {
 	client := getTestClient()
 
-	resp, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+	_, err = client.createUser("tester1", "tester1", "tester1")
 	assert.NoError(t, err)
 
-	_, err = client.changeAdStatus(100, resp.Data.ID, true)
+	resp, err := client.createAd(1, "hello", "world")
+	assert.NoError(t, err)
+
+	_, err = client.changeAdStatus(0, resp.Data.ID, true)
 	assert.ErrorIs(t, err, ErrForbidden)
 
-	_, err = client.changeAdStatus(123, 100, true)
+	_, err = client.changeAdStatus(0, 100, true)
 	assert.ErrorIs(t, err, ErrNotFound)
 }
 
 func TestUpdateAdOfAnotherUser(t *testing.T) {
 	client := getTestClient()
 
-	resp, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+	_, err = client.createUser("tester1", "tester1", "tester1")
 	assert.NoError(t, err)
 
-	_, err = client.updateAd(100, resp.Data.ID, "title", "text")
+	resp, err := client.createAd(0, "hello", "world")
+	assert.NoError(t, err)
+
+	_, err = client.updateAd(1, resp.Data.ID, "title", "text")
 	assert.ErrorIs(t, err, ErrForbidden)
 
-	_, err = client.updateAd(123, 100, "title", "text")
+	_, err = client.updateAd(1, 100, "title", "text")
 	assert.ErrorIs(t, err, ErrNotFound)
 }
 

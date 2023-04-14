@@ -3,6 +3,7 @@ package adsport
 import (
 	"github.com/gin-gonic/gin"
 	"homework8/internal/adapters/adrepo"
+	"homework8/internal/adapters/userrepo"
 	"homework8/internal/app/adapp"
 	"homework8/internal/entities/ads"
 	"net/http"
@@ -89,6 +90,8 @@ func changeAdStatus(a adapp.App) gin.HandlerFunc {
 			switch err {
 			case ads.ErrUserCantChangeThisAd:
 				c.JSON(http.StatusForbidden, AdErrorResponse(err))
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			case adrepo.ErrInvalidAdId:
 				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			case ads.ErrInvalidAdParams:
@@ -115,6 +118,8 @@ func updateAd(a adapp.App) gin.HandlerFunc {
 			switch err {
 			case ads.ErrUserCantChangeThisAd:
 				c.JSON(http.StatusForbidden, AdErrorResponse(err))
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			case ads.ErrInvalidAdParams:
 				c.JSON(http.StatusBadRequest, AdErrorResponse(err))
 			case adrepo.ErrInvalidAdId:

@@ -56,7 +56,8 @@ type testClient struct {
 }
 
 func getTestClient() *testClient {
-	server := httpgin.NewHTTPServer(":18080", adapp.NewApp(adrepo.New()), userapp.NewApp(userrepo.New()))
+	userRepo := userrepo.New()
+	server := httpgin.NewHTTPServer(":18080", adapp.NewApp(adrepo.New(), userRepo), userapp.NewApp(userRepo))
 	testServer := httptest.NewServer(server.Handler())
 
 	return &testClient{

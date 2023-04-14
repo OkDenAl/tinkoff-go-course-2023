@@ -35,20 +35,25 @@ func TestCreateUser(t *testing.T) {
 func TestChangeAdStatus(t *testing.T) {
 	client := getTestClient()
 
-	response, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+	_, err = client.createUser("tester1", "tester1", "tester1")
 	assert.NoError(t, err)
 
-	response, err = client.changeAdStatus(123, response.Data.ID, true)
+	response, err := client.createAd(1, "hello", "world")
+	assert.NoError(t, err)
+
+	response, err = client.changeAdStatus(1, response.Data.ID, true)
 	assert.NoError(t, err)
 	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
 	assert.Equal(t, response.Data.UpdateDate, time.Now().Format(time.DateOnly))
 	assert.True(t, response.Data.Published)
 
-	response, err = client.changeAdStatus(123, response.Data.ID, false)
+	response, err = client.changeAdStatus(1, response.Data.ID, false)
 	assert.NoError(t, err)
 	assert.False(t, response.Data.Published)
 
-	response, err = client.changeAdStatus(123, response.Data.ID, false)
+	response, err = client.changeAdStatus(1, response.Data.ID, false)
 	assert.NoError(t, err)
 	assert.False(t, response.Data.Published)
 }
@@ -56,10 +61,15 @@ func TestChangeAdStatus(t *testing.T) {
 func TestUpdateAd(t *testing.T) {
 	client := getTestClient()
 
-	response, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+	_, err = client.createUser("tester1", "tester1", "tester1")
 	assert.NoError(t, err)
 
-	response, err = client.updateAd(123, response.Data.ID, "привет", "мир")
+	response, err := client.createAd(1, "hello", "world")
+	assert.NoError(t, err)
+
+	response, err = client.updateAd(1, response.Data.ID, "привет", "мир")
 	assert.NoError(t, err)
 	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
 	assert.Equal(t, response.Data.UpdateDate, time.Now().Format(time.DateOnly))
@@ -100,10 +110,10 @@ func TestGetAdByTitle(t *testing.T) {
 func TestChangeNickname(t *testing.T) {
 	client := getTestClient()
 
-	response, err := client.createUser("test", "hello@gmail.com", "world123")
+	_, err := client.createUser("test", "hello@gmail.com", "world123")
 	assert.NoError(t, err)
 
-	response, err = client.changeNickname(0, "denis")
+	response, err := client.changeNickname(0, "denis")
 	assert.NoError(t, err)
 	assert.Equal(t, response.Data.Nickname, "denis")
 

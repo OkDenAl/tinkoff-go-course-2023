@@ -17,11 +17,11 @@ type App interface {
 
 type app struct {
 	repo     ads.Repository
-	userRepo *user.Repository
+	userRepo user.Repository
 }
 
-func NewApp(repo ads.Repository) App {
-	return app{repo: repo}
+func NewApp(repo ads.Repository, userRepo user.Repository) App {
+	return app{repo: repo, userRepo: userRepo}
 }
 
 func (a app) CreateAd(ctx context.Context, title, text string, userId int64) (*ads.Ad, error) {
@@ -54,6 +54,10 @@ func (a app) GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error) {
 }
 
 func (a app) ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus bool) (*ads.Ad, error) {
+	_, err := a.userRepo.GetUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
 	ad, err := a.repo.GetAdById(ctx, adId)
 	if err != nil {
 		return nil, err
@@ -79,6 +83,10 @@ func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText
 	err := ads.ValidateAd(&ads.Ad{Title: newTitle, Text: newText})
 	if err != nil {
 		return nil, ads.ErrInvalidAdParams
+	}
+	_, err = a.userRepo.GetUser(ctx, userId)
+	if err != nil {
+		return nil, err
 	}
 	ad, err := a.repo.GetAdById(ctx, adId)
 	if err != nil {
