@@ -74,8 +74,5 @@ func isAuthorIdValid(id string) bool {
 		return true
 	}
 	_, err := strconv.Atoi(id)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
