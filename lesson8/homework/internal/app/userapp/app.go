@@ -50,11 +50,7 @@ func (a app) ChangeNickname(ctx context.Context, id int64, nickname string) (*us
 	if u.Nickname == nickname {
 		return u, nil
 	}
-	u, err = a.repo.UpdateNick(ctx, id, nickname)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
+	return a.repo.UpdateNick(ctx, id, nickname)
 }
 
 func (a app) UpdatePassword(ctx context.Context, id int64, password string) (*user.User, error) {
@@ -69,9 +65,5 @@ func (a app) UpdatePassword(ctx context.Context, id int64, password string) (*us
 	if u.Password == password {
 		return u, nil
 	}
-	u, err = a.repo.UpdatePassword(ctx, id, password)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
+	return a.repo.UpdatePassword(ctx, id, password)
 }

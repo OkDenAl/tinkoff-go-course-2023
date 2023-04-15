@@ -6,6 +6,7 @@ import (
 	"homework8/internal/adapters/userrepo"
 	"homework8/internal/app/adapp"
 	"homework8/internal/entities/ads"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -22,6 +23,8 @@ func createAd(a adapp.App) gin.HandlerFunc {
 			switch err {
 			case ads.ErrInvalidAdParams:
 				c.JSON(http.StatusBadRequest, AdErrorResponse(err))
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			default:
 				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
 			}
@@ -54,7 +57,7 @@ func getAdByTitle(a adapp.App) gin.HandlerFunc {
 		ad, err := a.GetAdByTitle(c, title)
 		if err != nil {
 			switch err {
-			case adrepo.ErrInvalidAdId:
+			case adrepo.ErrInvalidAdTitle:
 				c.JSON(http.StatusNotFound, AdErrorResponse(err))
 			default:
 				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
@@ -67,13 +70,23 @@ func getAdByTitle(a adapp.App) gin.HandlerFunc {
 
 func getAllAds(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		title := c.Param("title")
-		ad, err := a.GetAdByTitle(c, title)
+		filters := ads.Filters{
+			Status:   ads.Status(c.DefaultQuery("status", string(ads.Published))),
+			Date:     c.Query("date"),
+			AuthorId: c.Query("author_id"),
+		}
+		adsArr, err := a.GetAll(c, filters)
 		if err != nil {
-			c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			switch err {
+			case ads.ErrInvalidFilters:
+				c.JSON(http.StatusBadRequest, AdErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
+			}
 			return
 		}
-		c.JSON(http.StatusOK, AdSuccessResponse(ad))
+		log.Println(len(adsArr))
+		c.JSON(http.StatusOK, AdsSuccessResponse(adsArr))
 	}
 }
 

@@ -11,6 +11,7 @@ type App interface {
 	CreateAd(ctx context.Context, title, text string, id int64) (*ads.Ad, error)
 	GetAdById(ctx context.Context, id int64) (*ads.Ad, error)
 	GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error)
+	GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error)
 	ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus bool) (*ads.Ad, error)
 	UpdateAd(ctx context.Context, adId, userId int64, title, text string) (*ads.Ad, error)
 }
@@ -25,6 +26,10 @@ func NewApp(repo ads.Repository, userRepo user.Repository) App {
 }
 
 func (a app) CreateAd(ctx context.Context, title, text string, userId int64) (*ads.Ad, error) {
+	_, err := a.userRepo.GetUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
 	t := time.Now()
 	ad := &ads.Ad{
 		Title:        title,
@@ -33,7 +38,7 @@ func (a app) CreateAd(ctx context.Context, title, text string, userId int64) (*a
 		Published:    false,
 		CreationDate: t.Format(time.DateOnly),
 	}
-	err := ads.ValidateAd(ad)
+	err = ads.ValidateAd(ad)
 	if err != nil {
 		return nil, ads.ErrInvalidAdParams
 	}
@@ -51,6 +56,14 @@ func (a app) GetAdById(ctx context.Context, id int64) (*ads.Ad, error) {
 
 func (a app) GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error) {
 	return a.repo.GetAdByTitle(ctx, title)
+}
+
+func (a app) GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error) {
+	err := filters.ValidateFilters()
+	if err != nil {
+		return nil, err
+	}
+	return a.repo.GetAll(ctx, filters)
 }
 
 func (a app) ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus bool) (*ads.Ad, error) {
@@ -72,11 +85,7 @@ func (a app) ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus b
 	t := time.Now()
 	ad.UpdateDate = t.Format(time.DateOnly)
 
-	ad, err = a.repo.UpdateAdStatus(ctx, adId, newStatus)
-	if err != nil {
-		return nil, err
-	}
-	return ad, err
+	return a.repo.UpdateAdStatus(ctx, adId, newStatus)
 }
 
 func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText string) (*ads.Ad, error) {
@@ -102,9 +111,5 @@ func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText
 	t := time.Now()
 	ad.UpdateDate = t.Format(time.DateOnly)
 
-	ad, err = a.repo.UpdateAdTitleAndText(ctx, adId, newTitle, newText)
-	if err != nil {
-		return nil, err
-	}
-	return ad, err
+	return a.repo.UpdateAdTitleAndText(ctx, adId, newTitle, newText)
 }

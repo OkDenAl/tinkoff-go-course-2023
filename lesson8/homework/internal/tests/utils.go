@@ -94,7 +94,6 @@ func (tc *testClient) getResponse(req *http.Request, out any) error {
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal: %w", err)
 	}
-
 	return nil
 }
 
