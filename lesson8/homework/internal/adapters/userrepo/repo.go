@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"homework8/internal/entities/user"
-	"log"
 )
 
 var (
@@ -36,7 +35,6 @@ func (r *repository) UpdatePassword(ctx context.Context, id int64, pass string) 
 }
 
 func (r *repository) GetUser(ctx context.Context, id int64) (*user.User, error) {
-	log.Println(r.userDataById)
 	data, ok := r.userDataById[id]
 	if !ok {
 		return nil, ErrInvalidUserId

@@ -47,6 +47,25 @@ func AdSuccessResponse(ad *ads.Ad) *gin.H {
 	}
 }
 
+func AdsSuccessResponse(ads []*ads.Ad) *gin.H {
+	resp := make([]adResponse, len(ads))
+	for i, ad := range ads {
+		resp[i] = adResponse{
+			ID:           ad.ID,
+			Title:        ad.Title,
+			Text:         ad.Text,
+			AuthorID:     ad.AuthorID,
+			Published:    ad.Published,
+			CreationDate: ad.CreationDate,
+			UpdateDate:   ad.UpdateDate,
+		}
+	}
+	return &gin.H{
+		"data":  resp,
+		"error": nil,
+	}
+}
+
 func AdErrorResponse(err error) *gin.H {
 	return &gin.H{
 		"data":  nil,

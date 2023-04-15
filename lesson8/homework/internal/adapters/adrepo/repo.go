@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"homework8/internal/entities/ads"
+	"strconv"
 )
 
 var (
@@ -45,6 +46,25 @@ func (r *repository) GetAdByTitle(ctx context.Context, title string) (*ads.Ad, e
 		return nil, ErrInvalidAdTitle
 	}
 	return ad, nil
+}
+
+func (r *repository) GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error) {
+	resp := make([]*ads.Ad, 0)
+	for _, val := range r.adDataById {
+		if filters.Date != "" && val.CreationDate != filters.Date {
+			continue
+		}
+		if filters.AuthorId != "" && strconv.FormatInt(val.AuthorID, 10) != filters.AuthorId {
+			continue
+		}
+		if filters.Status == ads.Published && val.Published {
+			resp = append(resp, val)
+		}
+		if filters.Status == ads.Unpublished && !val.Published {
+			resp = append(resp, val)
+		}
+	}
+	return resp, nil
 }
 
 func (r *repository) UpdateAdStatus(ctx context.Context, adId int64, newStatus bool) (*ads.Ad, error) {

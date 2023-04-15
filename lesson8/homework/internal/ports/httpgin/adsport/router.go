@@ -7,6 +7,7 @@ import (
 
 func AppRouter(r *gin.RouterGroup, a adapp.App) {
 	r.POST("/ads", createAd(a))
+	r.GET("/ads", getAllAds(a))
 	r.GET("/ads/id/:ad_id", getAdById(a))
 	r.GET("/ads/all", getAllAds(a))
 	r.GET("/ads/title/:title", getAdByTitle(a))

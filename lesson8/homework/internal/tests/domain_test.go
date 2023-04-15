@@ -45,15 +45,18 @@ func TestUpdateAdOfAnotherUser(t *testing.T) {
 func TestCreateAd_ID(t *testing.T) {
 	client := getTestClient()
 
-	resp, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+
+	resp, err := client.createAd(0, "hello", "world")
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(0))
 
-	resp, err = client.createAd(123, "hello", "world")
+	resp, err = client.createAd(0, "hello", "world")
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(1))
 
-	resp, err = client.createAd(123, "hello", "world")
+	resp, err = client.createAd(0, "hello", "world")
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(2))
 }
@@ -61,7 +64,10 @@ func TestCreateAd_ID(t *testing.T) {
 func TestGetAdWithIncorrectId(t *testing.T) {
 	client := getTestClient()
 
-	resp, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+
+	resp, err := client.createAd(0, "hello", "world")
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(0))
 
@@ -72,7 +78,10 @@ func TestGetAdWithIncorrectId(t *testing.T) {
 func TestGetAdWithIncorrectTitle(t *testing.T) {
 	client := getTestClient()
 
-	resp, err := client.createAd(123, "hello", "world")
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+
+	resp, err := client.createAd(0, "hello", "world")
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(0))
 
