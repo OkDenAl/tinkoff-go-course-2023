@@ -2,7 +2,7 @@ package httpfiber
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"homework8/internal/ads"
+	"homework8/internal/entities/ads"
 )
 
 type createAdRequest struct {
