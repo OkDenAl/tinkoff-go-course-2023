@@ -2,6 +2,7 @@ package tests
 
 import (
 	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -20,9 +21,47 @@ func TestCreateAd(t *testing.T) {
 	assert.Equal(t, response.Data.Title, "hello")
 	assert.Equal(t, response.Data.Text, "world")
 	assert.Equal(t, response.Data.AuthorID, int64(0))
-	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
+	assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
 	assert.Equal(t, response.Data.UpdateDate, "")
 	assert.False(t, response.Data.Published)
+}
+
+func TestCreateAdSync(t *testing.T) {
+	client := getTestClient()
+	var wg sync.WaitGroup
+	_, err := client.createUser("tester", "tester", "tester")
+	assert.NoError(t, err)
+	wg.Add(2)
+	first := make(chan struct{})
+	go func() {
+		defer wg.Done()
+		first <- struct{}{}
+		response, err := client.createAd(0, "hello", "world")
+		assert.NoError(t, err)
+		assert.Zero(t, response.Data.ID)
+		assert.Equal(t, response.Data.Title, "hello")
+		assert.Equal(t, response.Data.Text, "world")
+		assert.Equal(t, response.Data.AuthorID, int64(0))
+		assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
+		assert.Equal(t, response.Data.UpdateDate, "")
+		assert.False(t, response.Data.Published)
+		assert.NoError(t, err)
+	}()
+	<-first
+	go func() {
+		defer wg.Done()
+		response, err := client.createAd(0, "hello1", "world1")
+		assert.NoError(t, err)
+		assert.Equal(t, response.Data.ID, int64(1))
+		assert.Equal(t, response.Data.Title, "hello1")
+		assert.Equal(t, response.Data.Text, "world1")
+		assert.Equal(t, response.Data.AuthorID, int64(0))
+		assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
+		assert.Equal(t, response.Data.UpdateDate, "")
+		assert.False(t, response.Data.Published)
+		assert.NoError(t, err)
+	}()
+	wg.Wait()
 }
 
 func TestCreateUser(t *testing.T) {
@@ -49,8 +88,8 @@ func TestChangeAdStatus(t *testing.T) {
 
 	response, err = client.changeAdStatus(1, response.Data.ID, true)
 	assert.NoError(t, err)
-	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
-	assert.Equal(t, response.Data.UpdateDate, time.Now().Format(time.DateOnly))
+	assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
+	assert.Equal(t, response.Data.UpdateDate, time.Now().UTC().Format(time.DateOnly))
 	assert.True(t, response.Data.Published)
 
 	response, err = client.changeAdStatus(1, response.Data.ID, false)
@@ -75,8 +114,8 @@ func TestUpdateAd(t *testing.T) {
 
 	response, err = client.updateAd(1, response.Data.ID, "привет", "мир")
 	assert.NoError(t, err)
-	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
-	assert.Equal(t, response.Data.UpdateDate, time.Now().Format(time.DateOnly))
+	assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
+	assert.Equal(t, response.Data.UpdateDate, time.Now().UTC().Format(time.DateOnly))
 	assert.Equal(t, response.Data.Title, "привет")
 	assert.Equal(t, response.Data.Text, "мир")
 }
@@ -94,7 +133,7 @@ func TestGetAdById(t *testing.T) {
 
 	response, err := client.getAdById(1)
 	assert.NoError(t, err)
-	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
+	assert.Equal(t, response.Data.CreationDate, time.Now().UTC().Format(time.DateOnly))
 	assert.Equal(t, response.Data.Title, "hi")
 	assert.Equal(t, response.Data.Text, "tinkoff")
 }
@@ -109,12 +148,19 @@ func TestGetAdByTitle(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = client.createAd(0, "hi", "tinkoff")
 	assert.NoError(t, err)
-
-	response, err := client.getAdByTitle("hi")
+	_, err = client.createAd(0, "hi man", "text")
 	assert.NoError(t, err)
-	assert.Equal(t, response.Data.CreationDate, time.Now().Format(time.DateOnly))
-	assert.Equal(t, response.Data.Text, "tinkoff")
-	assert.Equal(t, response.Data.ID, int64(1))
+
+	response, err := client.getAdByTitle("hello")
+	assert.NoError(t, err)
+	assert.Len(t, response.Data, 1)
+	assert.Equal(t, response.Data[0].CreationDate, time.Now().UTC().Format(time.DateOnly))
+	assert.Equal(t, response.Data[0].Text, "world")
+	assert.Equal(t, response.Data[0].ID, int64(0))
+
+	response, err = client.getAdByTitle("hi")
+	assert.NoError(t, err)
+	assert.Len(t, response.Data, 2)
 }
 
 func TestChangeNickname(t *testing.T) {
@@ -162,7 +208,7 @@ func TestListAds(t *testing.T) {
 	log.Println(ads.Data)
 	log.Println(len(ads.Data))
 	assert.NoError(t, err)
-	//assert.Len(t, ads.Data, 1)
+	assert.Len(t, ads.Data, 1)
 	assert.Equal(t, ads.Data[0].ID, publishedAd.Data.ID)
 	assert.Equal(t, ads.Data[0].Title, publishedAd.Data.Title)
 	assert.Equal(t, ads.Data[0].Text, publishedAd.Data.Text)

@@ -18,7 +18,6 @@ type Server struct {
 
 func NewHTTPServer(port string, ad adapp.App, user userapp.App) Server {
 	gin.SetMode(gin.ReleaseMode)
-	gin.Default()
 	s := Server{port: port, app: gin.New()}
 
 	log := logger.InitLog()

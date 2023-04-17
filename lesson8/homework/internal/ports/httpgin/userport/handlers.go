@@ -5,7 +5,6 @@ import (
 	"homework8/internal/adapters/userrepo"
 	"homework8/internal/app/userapp"
 	"homework8/internal/entities/user"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -18,7 +17,6 @@ func createUser(u userapp.App) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, UserErrorResponse(err))
 			return
 		}
-		log.Println(reqBody)
 		us, err := u.CreateUser(c, reqBody.Nickname, reqBody.Email, reqBody.Password)
 		if err != nil {
 			switch err {
