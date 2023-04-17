@@ -2,6 +2,7 @@ package tests
 
 import (
 	"log"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -32,10 +33,8 @@ func TestCreateAdSync(t *testing.T) {
 	_, err := client.createUser("tester", "tester", "tester")
 	assert.NoError(t, err)
 	wg.Add(2)
-	first := make(chan struct{})
 	go func() {
 		defer wg.Done()
-		first <- struct{}{}
 		response, err := client.createAd(0, "hello", "world")
 		assert.NoError(t, err)
 		assert.Zero(t, response.Data.ID)
@@ -47,8 +46,7 @@ func TestCreateAdSync(t *testing.T) {
 		assert.False(t, response.Data.Published)
 		assert.NoError(t, err)
 	}()
-	<-first
-	time.Sleep(time.Millisecond * 5)
+	runtime.Gosched()
 	go func() {
 		defer wg.Done()
 		response, err := client.createAd(0, "hello1", "world1")

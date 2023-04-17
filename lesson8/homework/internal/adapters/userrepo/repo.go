@@ -12,14 +12,13 @@ var (
 )
 
 type repository struct {
-	mu             *sync.Mutex
+	mu             *sync.RWMutex
 	userDataById   map[int64]*user.User
 	curIdGenerator int64
 }
 
 func New() user.Repository {
-	var mu sync.Mutex
-	return &repository{userDataById: make(map[int64]*user.User), curIdGenerator: 0, mu: &mu}
+	return &repository{userDataById: make(map[int64]*user.User), curIdGenerator: 0, mu: &sync.RWMutex{}}
 }
 
 func (r *repository) CreateUser(ctx context.Context, user *user.User) (int64, error) {
@@ -44,9 +43,9 @@ func (r *repository) UpdatePassword(ctx context.Context, id int64, pass string) 
 }
 
 func (r *repository) GetUser(ctx context.Context, id int64) (*user.User, error) {
-	r.mu.Lock()
+	r.mu.RLock()
 	data, ok := r.userDataById[id]
-	r.mu.Unlock()
+	r.mu.RUnlock()
 	if !ok {
 		return nil, ErrInvalidUserId
 	}
