@@ -15,32 +15,28 @@ var (
 )
 
 type repository struct {
-	mu             *sync.Mutex
+	mu             *sync.RWMutex
 	adDataById     map[int64]*ads.Ad
 	curIdGenerator int64
 }
 
 func New() ads.Repository {
-	var mu sync.Mutex
-	return &repository{adDataById: make(map[int64]*ads.Ad), curIdGenerator: 0, mu: &mu}
+	return &repository{adDataById: make(map[int64]*ads.Ad), curIdGenerator: 0, mu: &sync.RWMutex{}}
 }
 
 func (r *repository) AddAd(ctx context.Context, ad *ads.Ad) (int64, error) {
-	//log.Println(ad.Title)
 	r.mu.Lock()
-	//log.Println(r.curIdGenerator, ad.Title)
 	ad.ID = r.curIdGenerator
 	r.adDataById[r.curIdGenerator] = ad
 	r.curIdGenerator++
-	//log.Println(r.curIdGenerator, ad.Title)
 	r.mu.Unlock()
 	return ad.ID, nil
 }
 
 func (r *repository) GetAdById(ctx context.Context, adId int64) (*ads.Ad, error) {
-	r.mu.Lock()
+	r.mu.RLock()
 	ad, ok := r.adDataById[adId]
-	r.mu.Unlock()
+	r.mu.RUnlock()
 	if !ok {
 		return nil, ErrInvalidAdId
 	}
@@ -50,9 +46,9 @@ func (r *repository) GetAdById(ctx context.Context, adId int64) (*ads.Ad, error)
 func (r *repository) GetAdsByTitle(ctx context.Context, title string) ([]*ads.Ad, error) {
 	resp := make([]*ads.Ad, 0)
 	for key := range r.adDataById {
-		r.mu.Lock()
+		r.mu.RLock()
 		ad := r.adDataById[key]
-		r.mu.Unlock()
+		r.mu.RUnlock()
 		if strings.HasPrefix(ad.Title, title) {
 			resp = append(resp, ad)
 		}
@@ -66,9 +62,9 @@ func (r *repository) GetAdsByTitle(ctx context.Context, title string) ([]*ads.Ad
 func (r *repository) GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error) {
 	resp := make([]*ads.Ad, 0)
 	for key := range r.adDataById {
-		r.mu.Lock()
+		r.mu.RLock()
 		val := r.adDataById[key]
-		r.mu.Unlock()
+		r.mu.RUnlock()
 		if filters.Date != "" && val.CreationDate != filters.Date {
 			continue
 		}
