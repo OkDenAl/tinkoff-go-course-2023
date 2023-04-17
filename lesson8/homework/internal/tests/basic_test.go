@@ -48,6 +48,7 @@ func TestCreateAdSync(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 	<-first
+	time.Sleep(time.Millisecond * 5)
 	go func() {
 		defer wg.Done()
 		response, err := client.createAd(0, "hello1", "world1")
