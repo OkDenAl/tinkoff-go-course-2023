@@ -10,7 +10,7 @@ import (
 type App interface {
 	CreateAd(ctx context.Context, title, text string, id int64) (*ads.Ad, error)
 	GetAdById(ctx context.Context, id int64) (*ads.Ad, error)
-	GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error)
+	GetAdsByTitle(ctx context.Context, title string) ([]*ads.Ad, error)
 	GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error)
 	ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus bool) (*ads.Ad, error)
 	UpdateAd(ctx context.Context, adId, userId int64, title, text string) (*ads.Ad, error)
@@ -30,7 +30,7 @@ func (a app) CreateAd(ctx context.Context, title, text string, userId int64) (*a
 	if err != nil {
 		return nil, err
 	}
-	t := time.Now()
+	t := time.Now().UTC()
 	ad := &ads.Ad{
 		Title:        title,
 		Text:         text,
@@ -54,8 +54,8 @@ func (a app) GetAdById(ctx context.Context, id int64) (*ads.Ad, error) {
 	return a.repo.GetAdById(ctx, id)
 }
 
-func (a app) GetAdByTitle(ctx context.Context, title string) (*ads.Ad, error) {
-	return a.repo.GetAdByTitle(ctx, title)
+func (a app) GetAdsByTitle(ctx context.Context, title string) ([]*ads.Ad, error) {
+	return a.repo.GetAdsByTitle(ctx, title)
 }
 
 func (a app) GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error) {
@@ -82,7 +82,7 @@ func (a app) ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus b
 		return ad, nil
 	}
 
-	t := time.Now()
+	t := time.Now().UTC()
 	ad.UpdateDate = t.Format(time.DateOnly)
 
 	return a.repo.UpdateAdStatus(ctx, adId, newStatus)
@@ -108,7 +108,7 @@ func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText
 		return ad, nil
 	}
 
-	t := time.Now()
+	t := time.Now().UTC()
 	ad.UpdateDate = t.Format(time.DateOnly)
 
 	return a.repo.UpdateAdTitleAndText(ctx, adId, newTitle, newText)

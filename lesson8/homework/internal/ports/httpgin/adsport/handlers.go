@@ -51,10 +51,10 @@ func getAdById(a adapp.App) gin.HandlerFunc {
 	}
 }
 
-func getAdByTitle(a adapp.App) gin.HandlerFunc {
+func getAdsByTitle(a adapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		title := c.Param("title")
-		ad, err := a.GetAdByTitle(c, title)
+		adsArr, err := a.GetAdsByTitle(c, title)
 		if err != nil {
 			switch err {
 			case adrepo.ErrInvalidAdTitle:
@@ -64,7 +64,7 @@ func getAdByTitle(a adapp.App) gin.HandlerFunc {
 			}
 			return
 		}
-		c.JSON(http.StatusOK, AdSuccessResponse(ad))
+		c.JSON(http.StatusOK, AdsSuccessResponse(adsArr))
 	}
 }
 

@@ -85,6 +85,6 @@ func TestGetAdWithIncorrectTitle(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Data.ID, int64(0))
 
-	resp, err = client.getAdByTitle("easy hw")
+	_, err = client.getAdByTitle("easy hw")
 	assert.ErrorIs(t, err, ErrNotFound)
 }

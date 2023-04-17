@@ -277,19 +277,19 @@ func (tc *testClient) getAdById(adID int64) (adResponse, error) {
 	return response, nil
 }
 
-func (tc *testClient) getAdByTitle(title string) (adResponse, error) {
+func (tc *testClient) getAdByTitle(title string) (adsResponse, error) {
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(tc.baseURL+"/api/v1/ads/title/%s", title), nil)
 	if err != nil {
-		return adResponse{}, fmt.Errorf("unable to create request: %w", err)
+		return adsResponse{}, fmt.Errorf("unable to create request: %w", err)
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
-	var response adResponse
+	var response adsResponse
 	err = tc.getResponse(req, &response)
 	if err != nil {
-		return adResponse{}, err
+		return adsResponse{}, err
 	}
 
 	return response, nil
