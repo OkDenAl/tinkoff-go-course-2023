@@ -1,11 +1,14 @@
 package httpgin
 
 import (
+	"homework8/internal/app/adapp"
+	"homework8/internal/app/userapp"
+	"homework8/internal/ports/httpgin/adsport"
+	"homework8/internal/ports/httpgin/userport"
+	"homework8/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"homework8/internal/app"
 )
 
 type Server struct {
@@ -13,11 +16,17 @@ type Server struct {
 	app  *gin.Engine
 }
 
-func NewHTTPServer(port string, a app.App) Server {
+func NewHTTPServer(port string, ad adapp.App, user userapp.App) Server {
 	gin.SetMode(gin.ReleaseMode)
 	s := Server{port: port, app: gin.New()}
 
-	// todo: add your own logic
+	log := logger.InitLog()
+
+	api := s.app.Group("/api/v1", Logger(log), gin.Recovery())
+	{
+		adsport.AppRouter(api, ad)
+		userport.AppRouter(api, user)
+	}
 
 	return s
 }

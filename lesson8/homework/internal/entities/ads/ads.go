@@ -11,11 +11,13 @@ var (
 )
 
 type Ad struct {
-	ID        int64
-	Title     string
-	Text      string
-	AuthorID  int64
-	Published bool
+	ID           int64
+	Title        string
+	Text         string
+	AuthorID     int64
+	CreationDate string
+	UpdateDate   string
+	Published    bool
 }
 
 type ValidatorAd struct {
