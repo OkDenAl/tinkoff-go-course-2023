@@ -3,6 +3,7 @@ module homework9
 go 1.19
 
 require (
+	github.com/OkDenAl/validator v0.1.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/stretchr/testify v1.8.2
 	google.golang.org/grpc v1.54.0

@@ -1,13 +1,6 @@
 package main
 
-import (
-	"homework8/internal/adapters/adrepo"
-
-	"homework8/internal/adapters/userrepo"
-	"homework8/internal/app/adapp"
-	"homework8/internal/app/userapp"
-	"homework8/internal/ports/httpgin"
-)
+import "homework9/internal/ports/httpgin"
 
 func main() {
 	userRepo := userrepo.New()
