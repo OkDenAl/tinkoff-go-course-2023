@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"homework9/internal/adapters/adrepo"
-	"homework9/internal/app"
 	grpcPort "homework9/internal/ports/grpc"
 )
 

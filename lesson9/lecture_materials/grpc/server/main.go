@@ -8,12 +8,12 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"proj/grpc/foo"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"gitlab.tcsbank.ru/a.krutyakov/lesson9/cmd/grpc/foo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
