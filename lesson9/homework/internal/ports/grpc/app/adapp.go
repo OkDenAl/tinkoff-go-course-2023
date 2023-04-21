@@ -186,6 +186,9 @@ func (a *AdService) GetAdByTitle(ctx context.Context, req *base.GetAdByTitleRequ
 }
 
 func (a *AdService) ListAds(ctx context.Context, f *base.Filters) (*base.ListAdResponse, error) {
+	if f.Status == "" {
+		f.Status = string(ads.Published)
+	}
 	filters := ads.Filters{
 		Status:   ads.Status(f.Status),
 		Date:     f.Date,
