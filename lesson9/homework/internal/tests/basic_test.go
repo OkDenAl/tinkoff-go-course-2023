@@ -197,7 +197,7 @@ func TestDeleteUser(t *testing.T) {
 
 	_, err = client.deleteUser(0)
 	assert.NoError(t, err)
-	_, err = client.deleteUser(0)
+	_, _ = client.deleteUser(0)
 	assert.Error(t, ErrNotFound)
 }
 
@@ -251,22 +251,22 @@ func TestDeleteAd(t *testing.T) {
 	_, err := client.createUser("test", "hello@gmail.com", "world123")
 	assert.NoError(t, err)
 
-	_, err = client.createAd(0, "hello", "world")
-	_, err = client.createAd(0, "hello1", "world1")
-	_, err = client.createAd(0, "hello2", "world2")
+	_, _ = client.createAd(0, "hello", "world")
+	_, _ = client.createAd(0, "hello1", "world1")
+	_, _ = client.createAd(0, "hello2", "world2")
 
 	_, err = client.deleteAd(1, 0)
 	assert.NoError(t, err)
 
-	_, err = client.deleteAd(1, 0)
+	_, _ = client.deleteAd(1, 0)
 	assert.Error(t, ErrNotFound)
 
-	_, err = client.deleteAd(1, 1)
+	_, _ = client.deleteAd(1, 1)
 	assert.Error(t, ErrForbidden)
 
-	_, err = client.deleteUser(0)
+	_, _ = client.deleteUser(0)
 	assert.NoError(t, err)
 
-	_, err = client.deleteAd(0, 0)
+	_, _ = client.deleteAd(0, 0)
 	assert.Error(t, ErrNotFound)
 }
