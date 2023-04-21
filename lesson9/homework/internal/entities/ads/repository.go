@@ -1,6 +1,8 @@
 package ads
 
-import "context"
+import (
+	"context"
+)
 
 type Repository interface {
 	AddAd(ctx context.Context, ad *Ad) (int64, error)

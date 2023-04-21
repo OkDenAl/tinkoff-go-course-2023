@@ -2,7 +2,6 @@ package tests
 
 import (
 	"log"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -46,7 +45,7 @@ func TestCreateAdSync(t *testing.T) {
 		assert.False(t, response.Data.Published)
 		assert.NoError(t, err)
 	}()
-	runtime.Gosched()
+	time.Sleep(5 * time.Millisecond)
 	go func() {
 		defer wg.Done()
 		response, err := client.createAd(0, "hello1", "world1")
