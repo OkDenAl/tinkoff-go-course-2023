@@ -32,6 +32,17 @@ type updateAdRequest struct {
 	UserID int64  `json:"user_id"`
 }
 
+type deleteAdRequest struct {
+	UserID int64 `json:"user_id"`
+}
+
+func AdDeleteSuccessResponse() *gin.H {
+	return &gin.H{
+		"data":  "ad successfully deleted",
+		"error": nil,
+	}
+}
+
 func AdSuccessResponse(ad *ads.Ad) *gin.H {
 	return &gin.H{
 		"data": adResponse{

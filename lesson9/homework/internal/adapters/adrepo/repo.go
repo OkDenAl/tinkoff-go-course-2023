@@ -95,3 +95,11 @@ func (r *repository) UpdateAdTitleAndText(ctx context.Context, adId int64, newTi
 	r.adDataById[adId].Title = newTitle
 	return r.adDataById[adId], nil
 }
+
+func (r *repository) DeleteAd(ctx context.Context, adId int64) error {
+	r.mu.Lock()
+	delete(r.adDataById, adId)
+	r.curIdGenerator--
+	r.mu.Unlock()
+	return nil
+}

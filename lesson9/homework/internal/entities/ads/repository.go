@@ -9,4 +9,5 @@ type Repository interface {
 	GetAll(ctx context.Context, filters Filters) ([]*Ad, error)
 	UpdateAdStatus(ctx context.Context, adId int64, newStatus bool) (*Ad, error)
 	UpdateAdTitleAndText(ctx context.Context, adId int64, newTitle, newText string) (*Ad, error)
+	DeleteAd(ctx context.Context, adId int64) error
 }
