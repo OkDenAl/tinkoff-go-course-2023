@@ -2,7 +2,6 @@ package userapp
 
 import (
 	"context"
-	"homework9/internal/entities/ads"
 	"homework9/internal/entities/user"
 )
 
@@ -43,7 +42,7 @@ func (a app) CreateUser(ctx context.Context, nickname, email, password string) (
 func (a app) ChangeNickname(ctx context.Context, id int64, nickname string) (*user.User, error) {
 	err := user.ValidateUser(&user.User{Nickname: nickname, Password: "mockpass"})
 	if err != nil {
-		return nil, ads.ErrInvalidAdParams
+		return nil, user.ErrInvalidUserParams
 	}
 	u, err := a.repo.GetUser(ctx, id)
 	if err != nil {
@@ -58,7 +57,7 @@ func (a app) ChangeNickname(ctx context.Context, id int64, nickname string) (*us
 func (a app) UpdatePassword(ctx context.Context, id int64, password string) (*user.User, error) {
 	err := user.ValidateUser(&user.User{Nickname: "mocknick", Password: password})
 	if err != nil {
-		return nil, ads.ErrInvalidAdParams
+		return nil, user.ErrInvalidUserParams
 	}
 	u, err := a.repo.GetUser(ctx, id)
 	if err != nil {

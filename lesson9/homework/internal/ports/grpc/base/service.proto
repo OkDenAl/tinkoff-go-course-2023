@@ -8,11 +8,23 @@ service AdService {
   rpc CreateAd(CreateAdRequest) returns (AdResponse) {}
   rpc ChangeAdStatus(ChangeAdStatusRequest) returns (AdResponse) {}
   rpc UpdateAd(UpdateAdRequest) returns (AdResponse) {}
-  rpc ListAds(google.protobuf.Empty) returns (ListAdResponse) {}
+  rpc GetAdById(GetAdByIdRequest) returns (AdResponse) {}
+  rpc GetAdByTitle(GetAdByTitleRequest) returns (ListAdResponse) {}
+  rpc ListAds(Filters) returns (ListAdResponse) {}
+  rpc DeleteAd(DeleteAdRequest) returns (google.protobuf.Empty) {}
+}
+
+service UserService{
   rpc CreateUser(CreateUserRequest) returns (UserResponse) {}
+  rpc ChangeNickname(ChangeNicknameRequest) returns (UserResponse) {}
   rpc GetUser(GetUserRequest) returns (UserResponse) {}
   rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {}
-  rpc DeleteAd(DeleteAdRequest) returns (google.protobuf.Empty) {}
+}
+
+message Filters{
+  string status=1;
+  string date=2;
+  string author_id=3;
 }
 
 message CreateAdRequest {
@@ -34,12 +46,22 @@ message UpdateAdRequest {
   int64 user_id = 4;
 }
 
+message GetAdByIdRequest {
+  int64 ad_id = 1;
+}
+
+message GetAdByTitleRequest {
+  string title = 1;
+}
+
 message AdResponse {
   int64 id = 1;
   string title = 2;
   string text = 3;
   int64 author_id = 4;
   bool published = 5;
+  string CreationDate = 6;
+  string UpdateDate=7;
 }
 
 message ListAdResponse {
@@ -47,12 +69,20 @@ message ListAdResponse {
 }
 
 message CreateUserRequest {
-  string name = 1;
+  string nickname = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message ChangeNicknameRequest {
+  int64 id =1;
+  string nickname=2;
 }
 
 message UserResponse {
   int64 id = 1;
-  string name = 2;
+  string nickname = 2;
+  string email = 3;
 }
 
 message GetUserRequest {
