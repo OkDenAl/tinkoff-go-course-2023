@@ -51,3 +51,11 @@ func (r *repository) GetUser(ctx context.Context, id int64) (*user.User, error) 
 	}
 	return data, nil
 }
+
+func (r *repository) DeleteUser(ctx context.Context, id int64) error {
+	r.mu.Lock()
+	delete(r.userDataById, id)
+	r.curIdGenerator--
+	r.mu.Unlock()
+	return nil
+}

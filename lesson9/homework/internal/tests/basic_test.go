@@ -187,6 +187,36 @@ func TestUpdatePassword(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestDeleteUser(t *testing.T) {
+	client := getTestClient()
+
+	_, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+	_, err = client.createUser("test1", "hello1@gmail.com", "world1123")
+	assert.NoError(t, err)
+
+	_, err = client.deleteUser(0)
+	assert.NoError(t, err)
+	_, err = client.deleteUser(0)
+	assert.Error(t, ErrNotFound)
+}
+
+func TestGetUser(t *testing.T) {
+	client := getTestClient()
+
+	_, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+	_, err = client.createUser("test1", "hello1@gmail.com", "world1123")
+	assert.NoError(t, err)
+
+	response, err := client.getUser(1)
+	assert.NoError(t, err)
+	assert.Equal(t, response.Data.Id, int64(1))
+	assert.Equal(t, response.Data.Email, "hello1@gmail.com")
+	assert.Equal(t, response.Data.Nickname, "test1")
+	assert.Equal(t, response.Data.Password, "")
+}
+
 func TestListAds(t *testing.T) {
 
 	client := getTestClient()
@@ -213,4 +243,30 @@ func TestListAds(t *testing.T) {
 	assert.Equal(t, ads.Data[0].Text, publishedAd.Data.Text)
 	assert.Equal(t, ads.Data[0].AuthorID, publishedAd.Data.AuthorID)
 	assert.True(t, ads.Data[0].Published)
+}
+
+func TestDeleteAd(t *testing.T) {
+	client := getTestClient()
+
+	_, err := client.createUser("test", "hello@gmail.com", "world123")
+	assert.NoError(t, err)
+
+	_, err = client.createAd(0, "hello", "world")
+	_, err = client.createAd(0, "hello1", "world1")
+	_, err = client.createAd(0, "hello2", "world2")
+
+	_, err = client.deleteAd(1, 0)
+	assert.NoError(t, err)
+
+	_, err = client.deleteAd(1, 0)
+	assert.Error(t, ErrNotFound)
+
+	_, err = client.deleteAd(1, 1)
+	assert.Error(t, ErrForbidden)
+
+	_, err = client.deleteUser(0)
+	assert.NoError(t, err)
+
+	_, err = client.deleteAd(0, 0)
+	assert.Error(t, ErrNotFound)
 }

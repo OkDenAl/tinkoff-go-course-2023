@@ -13,4 +13,5 @@ func AppRouter(r *gin.RouterGroup, a adsapp.App) {
 	r.GET("/ads/title/:title", getAdsByTitle(a))
 	r.PUT("/ads/:ad_id/status", changeAdStatus(a))
 	r.PUT("/ads/:ad_id/text", updateAd(a))
+	r.DELETE("/ads/:ad_id/delete", deleteAd(a))
 }

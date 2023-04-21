@@ -145,3 +145,30 @@ func updateAd(a adsapp.App) gin.HandlerFunc {
 		c.JSON(http.StatusOK, AdSuccessResponse(ad))
 	}
 }
+
+func deleteAd(a adsapp.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var reqBody deleteAdRequest
+		err := c.BindJSON(&reqBody)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, AdErrorResponse(err))
+			return
+		}
+		id, _ := strconv.Atoi(c.Param("ad_id"))
+		err = a.DeleteAd(c, int64(id), reqBody.UserID)
+		if err != nil {
+			switch err {
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			case adrepo.ErrInvalidAdId:
+				c.JSON(http.StatusNotFound, AdErrorResponse(err))
+			case adsapp.ErrUnableToDelete:
+				c.JSON(http.StatusForbidden, AdErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, AdErrorResponse(err))
+			}
+			return
+		}
+		c.JSON(http.StatusOK, AdDeleteSuccessResponse())
+	}
+}

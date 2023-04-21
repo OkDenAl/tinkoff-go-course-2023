@@ -38,6 +38,13 @@ func UserSuccessResponse(u *user.User) *gin.H {
 	}
 }
 
+func UserDeleteSuccessResponse() *gin.H {
+	return &gin.H{
+		"data":  "user successfully deleted",
+		"error": nil,
+	}
+}
+
 func UserErrorResponse(err error) *gin.H {
 	return &gin.H{
 		"data":  nil,

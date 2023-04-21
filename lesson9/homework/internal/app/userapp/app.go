@@ -8,6 +8,8 @@ import (
 
 type App interface {
 	CreateUser(ctx context.Context, nickname, email, password string) (*user.User, error)
+	GetUser(ctx context.Context, id int64) (*user.User, error)
+	DeleteUser(ctx context.Context, id int64) error
 	ChangeNickname(ctx context.Context, id int64, nickname string) (*user.User, error)
 	UpdatePassword(ctx context.Context, id int64, password string) (*user.User, error)
 }
@@ -66,4 +68,16 @@ func (a app) UpdatePassword(ctx context.Context, id int64, password string) (*us
 		return u, nil
 	}
 	return a.repo.UpdatePassword(ctx, id, password)
+}
+
+func (a app) DeleteUser(ctx context.Context, id int64) error {
+	_, err := a.repo.GetUser(ctx, id)
+	if err != nil {
+		return err
+	}
+	return a.repo.DeleteUser(ctx, id)
+}
+
+func (a app) GetUser(ctx context.Context, id int64) (*user.User, error) {
+	return a.repo.GetUser(ctx, id)
 }

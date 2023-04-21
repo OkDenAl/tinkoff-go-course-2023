@@ -80,3 +80,37 @@ func updatePassword(u userapp.App) gin.HandlerFunc {
 		c.JSON(http.StatusOK, UserSuccessResponse(us))
 	}
 }
+
+func deleteUser(u userapp.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, _ := strconv.Atoi(c.Param("user_id"))
+		err := u.DeleteUser(c, int64(id))
+		if err != nil {
+			switch err {
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, UserErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, UserErrorResponse(err))
+			}
+			return
+		}
+		c.JSON(http.StatusOK, UserDeleteSuccessResponse())
+	}
+}
+
+func getUser(u userapp.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, _ := strconv.Atoi(c.Param("user_id"))
+		u, err := u.GetUser(c, int64(id))
+		if err != nil {
+			switch err {
+			case userrepo.ErrInvalidUserId:
+				c.JSON(http.StatusNotFound, UserErrorResponse(err))
+			default:
+				c.JSON(http.StatusInternalServerError, UserErrorResponse(err))
+			}
+			return
+		}
+		c.JSON(http.StatusOK, UserSuccessResponse(u))
+	}
+}

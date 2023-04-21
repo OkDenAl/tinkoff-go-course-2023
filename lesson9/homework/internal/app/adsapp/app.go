@@ -2,9 +2,15 @@ package adsapp
 
 import (
 	"context"
+	"errors"
+	"homework9/internal/adapters/userrepo"
 	"homework9/internal/entities/ads"
 	"homework9/internal/entities/user"
 	"time"
+)
+
+var (
+	ErrUnableToDelete = errors.New("unable to delete an ad created by another user")
 )
 
 type App interface {
@@ -14,6 +20,7 @@ type App interface {
 	GetAll(ctx context.Context, filters ads.Filters) ([]*ads.Ad, error)
 	ChangeAdStatus(ctx context.Context, adId, userId int64, newStatus bool) (*ads.Ad, error)
 	UpdateAd(ctx context.Context, adId, userId int64, title, text string) (*ads.Ad, error)
+	DeleteAd(ctx context.Context, adId, userId int64) error
 }
 
 type app struct {
@@ -112,4 +119,19 @@ func (a app) UpdateAd(ctx context.Context, adId, userId int64, newTitle, newText
 	ad.UpdateDate = t.Format(time.DateOnly)
 
 	return a.repo.UpdateAdTitleAndText(ctx, adId, newTitle, newText)
+}
+
+func (a app) DeleteAd(ctx context.Context, adId, userID int64) error {
+	ad, err := a.repo.GetAdById(ctx, adId)
+	if err != nil {
+		return err
+	}
+	if ad.AuthorID != userID {
+		return ErrUnableToDelete
+	}
+	_, err = a.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return userrepo.ErrInvalidUserId
+	}
+	return a.repo.DeleteAd(ctx, adId)
 }
