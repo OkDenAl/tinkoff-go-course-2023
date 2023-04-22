@@ -7,6 +7,7 @@ import (
 	"homework9/internal/adapters/userrepo"
 	"homework9/internal/app/adsapp"
 	"homework9/internal/app/userapp"
+	"homework9/pkg/logger"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -64,9 +65,10 @@ type testClient struct {
 }
 
 func getTestClient() *testClient {
+	log := logger.InitLog()
 	userRepo := userrepo.New()
-	server := httpgin.NewHTTPServer(":18080", adsapp.NewApp(adrepo.New(), userRepo), userapp.NewApp(userRepo))
-	testServer := httptest.NewServer(server.Handler())
+	server := httpgin.NewHTTPServer(":18080", adsapp.NewApp(adrepo.New(), userRepo), userapp.NewApp(userRepo), log)
+	testServer := httptest.NewServer(server.Handler)
 
 	return &testClient{
 		client:  testServer.Client(),

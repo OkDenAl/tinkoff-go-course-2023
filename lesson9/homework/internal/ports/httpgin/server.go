@@ -11,30 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Server struct {
-	port string
-	app  *gin.Engine
-}
-
-func NewHTTPServer(port string, ad adsapp.App, user userapp.App) Server {
+func NewHTTPServer(port string, ad adsapp.App, user userapp.App, log logger.Logger) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
-	s := Server{port: port, app: gin.New()}
-
-	log := logger.InitLog()
-
-	api := s.app.Group("/api/v1", Logger(log), gin.Recovery())
+	handler := gin.New()
+	api := handler.Group("/api/v1", Logger(log), gin.Recovery())
 	{
 		adsport.AppRouter(api, ad)
 		userport.AppRouter(api, user)
 	}
 
-	return s
-}
-
-func (s *Server) Listen() error {
-	return s.app.Run(s.port)
-}
-
-func (s *Server) Handler() http.Handler {
-	return s.app
+	return &http.Server{Addr: port, Handler: handler}
 }
