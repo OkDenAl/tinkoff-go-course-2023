@@ -49,8 +49,12 @@ func main() {
 		errCh := make(chan error)
 
 		defer func() {
-			grpcServer.GracefulStop()
-			_ = lis.Close()
+			shCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			if err := httpServer.Shutdown(shCtx); err != nil {
+				log.Infof("can't close http server listening on %s: %s", httpServer.Addr, err.Error())
+			}
 
 			close(errCh)
 		}()
@@ -75,15 +79,12 @@ func main() {
 		errCh := make(chan error)
 
 		defer func() {
-			shCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-
-			if err := httpServer.Shutdown(shCtx); err != nil {
-				log.Infof("can't close http server listening on %s: %s", httpServer.Addr, err.Error())
-			}
+			grpcServer.GracefulStop()
+			_ = lis.Close()
 
 			close(errCh)
 		}()
+
 		go func() {
 			if err := grpcServer.Serve(lis); err != nil {
 				errCh <- err
