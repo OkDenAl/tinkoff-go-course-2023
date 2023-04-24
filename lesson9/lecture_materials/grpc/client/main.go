@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	conn, err := grpc.DialContext(context.Background(), "localhost:50054", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(context.Background(), "localhost:50056", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//conn, err := grpc.DialContext(context.Background(), "localhost:50054",
 	//	grpc.WithChainUnaryInterceptor(ExampleUnaryClientInterceptor),
 	//	grpc.WithChainStreamInterceptor(ExampleStreamClientInterceptor),
