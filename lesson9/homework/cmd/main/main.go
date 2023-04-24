@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 	"homework9/internal/adapters/adrepo"
 	"homework9/internal/adapters/userrepo"
 	"homework9/internal/app/adsapp"
@@ -41,13 +40,20 @@ func main() {
 	grpcServer := grpcInterface.NewGrpcServer(adsRepo, userRepo)
 
 	g, ctx := errgroup.WithContext(context.Background())
-	gracefulShutdown(ctx, g, httpServer, grpcServer, log)
+	gracefulShutdown(ctx, g, log)
 
 	g.Go(func() error {
 		log.Info("starting http server on port", httpPort)
 		defer log.Info("closing http server on port", httpPort)
 
 		errCh := make(chan error)
+
+		defer func() {
+			grpcServer.GracefulStop()
+			_ = lis.Close()
+
+			close(errCh)
+		}()
 
 		go func() {
 			if err = httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
@@ -67,6 +73,17 @@ func main() {
 		defer log.Info("closing grpc server on port", grpcPort)
 
 		errCh := make(chan error)
+
+		defer func() {
+			shCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			if err := httpServer.Shutdown(shCtx); err != nil {
+				log.Infof("can't close http server listening on %s: %s", httpServer.Addr, err.Error())
+			}
+
+			close(errCh)
+		}()
 		go func() {
 			if err := grpcServer.Serve(lis); err != nil {
 				errCh <- err
@@ -84,19 +101,13 @@ func main() {
 	}
 }
 
-func gracefulShutdown(ctx context.Context, g *errgroup.Group, httpServer *http.Server, grpcServer *grpc.Server, log logger.Logger) {
+func gracefulShutdown(ctx context.Context, g *errgroup.Group, log logger.Logger) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	g.Go(func() error {
 		select {
 		case s := <-signals:
 			log.Infof("captured signal %v", s)
-			shCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-			if err := httpServer.Shutdown(shCtx); err != nil {
-				log.Infof("unexpected error during shutting down the server: %w", err)
-			}
-			grpcServer.GracefulStop()
 			return fmt.Errorf("captured signal %v", s)
 		case <-ctx.Done():
 			return nil
