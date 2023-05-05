@@ -30,6 +30,11 @@ func TestFiltersIsValid(t *testing.T) {
 			Expect: true,
 		},
 		{
+			Name:   "empty date",
+			In:     IsValidDateTest{Date: ""},
+			Expect: true,
+		},
+		{
 			Name:   "incorrect month",
 			In:     IsValidDateTest{Date: "2023-20-28"},
 			Expect: false,
@@ -47,6 +52,11 @@ func TestFiltersIsValid(t *testing.T) {
 		{
 			Name:   "incorrect date",
 			In:     IsValidDateTest{Date: "date"},
+			Expect: false,
+		},
+		{
+			Name:   "incorrect date",
+			In:     IsValidDateTest{Date: "year-month-day"},
 			Expect: false,
 		},
 		{
@@ -72,6 +82,11 @@ func TestFiltersIsValid(t *testing.T) {
 		{
 			Name:   "correct author id",
 			In:     IsValidAuthorIdTest{Id: "10"},
+			Expect: true,
+		},
+		{
+			Name:   "correct empty author id",
+			In:     IsValidAuthorIdTest{Id: ""},
 			Expect: true,
 		},
 		{
