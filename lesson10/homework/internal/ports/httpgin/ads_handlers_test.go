@@ -41,14 +41,14 @@ type deleteAdResponse struct {
 	Data string `json:"data"`
 }
 
-type ApiTestSuite struct {
+type AdsApiTestSuite struct {
 	suite.Suite
 	adsService *adsServiceMock.App
 	client     *http.Client
 	baseURL    string
 }
 
-func (suite *ApiTestSuite) SetupTest() {
+func (suite *AdsApiTestSuite) SetupTest() {
 	suite.adsService = &adsServiceMock.App{}
 	server := NewHTTPServer(":18080", suite.adsService, &mocks.App{}, logger.InitLog())
 	testServer := httptest.NewServer(server.Handler)
@@ -56,7 +56,7 @@ func (suite *ApiTestSuite) SetupTest() {
 	suite.baseURL = testServer.URL
 }
 
-func (suite *ApiTestSuite) TestCreateAd_OK() {
+func (suite *AdsApiTestSuite) TestCreateAd_OK() {
 	suite.adsService.On("CreateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"), mock.AnythingOfType("int64")).
 		Return(&ads.Ad{Title: "title", Text: "text", AuthorID: 1, ID: 1}, nil)
@@ -76,7 +76,7 @@ func (suite *ApiTestSuite) TestCreateAd_OK() {
 	suite.Equal(responseAd.Data.ID, int64(1))
 }
 
-func (suite *ApiTestSuite) TestCreateAd_InvalidParams() {
+func (suite *AdsApiTestSuite) TestCreateAd_InvalidParams() {
 	suite.adsService.On("CreateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"), mock.AnythingOfType("int64")).
 		Return(nil, ads.ErrInvalidAdParams)
@@ -91,7 +91,7 @@ func (suite *ApiTestSuite) TestCreateAd_InvalidParams() {
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestCreateAd_InvalidUserUd() {
+func (suite *AdsApiTestSuite) TestCreateAd_InvalidUserUd() {
 	suite.adsService.On("CreateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"), mock.AnythingOfType("int64")).
 		Return(nil, userrepo.ErrInvalidUserId)
@@ -106,7 +106,7 @@ func (suite *ApiTestSuite) TestCreateAd_InvalidUserUd() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestCreateAd_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestCreateAd_UnexpectedError() {
 	suite.adsService.On("CreateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"), mock.AnythingOfType("int64")).
 		Return(nil, errors.New("server error"))
@@ -121,13 +121,13 @@ func (suite *ApiTestSuite) TestCreateAd_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestCreateAd_NilBody() {
+func (suite *AdsApiTestSuite) TestCreateAd_NilBody() {
 	req, _ := http.NewRequest(http.MethodPost, suite.baseURL+"/api/v1/ads", nil)
 	resp, _ := suite.client.Do(req)
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestGetAdById_OK() {
+func (suite *AdsApiTestSuite) TestGetAdById_OK() {
 	suite.adsService.On("GetAdById", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64")).
 		Return(&ads.Ad{Title: "title", Text: "text", AuthorID: 1, ID: 10}, nil)
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/id/10", nil)
@@ -140,7 +140,7 @@ func (suite *ApiTestSuite) TestGetAdById_OK() {
 	suite.Equal(responseAd.Data.ID, int64(10))
 }
 
-func (suite *ApiTestSuite) TestGetAdById_InvalidAdId() {
+func (suite *AdsApiTestSuite) TestGetAdById_InvalidAdId() {
 	suite.adsService.On("GetAdById", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64")).
 		Return(nil, adrepo.ErrInvalidAdId)
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/id/10", nil)
@@ -148,7 +148,7 @@ func (suite *ApiTestSuite) TestGetAdById_InvalidAdId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestGetAdById_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestGetAdById_UnexpectedError() {
 	suite.adsService.On("GetAdById", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64")).
 		Return(nil, errors.New("unexpected error"))
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/id/10", nil)
@@ -156,7 +156,7 @@ func (suite *ApiTestSuite) TestGetAdById_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestGetAdsByTitle_OK() {
+func (suite *AdsApiTestSuite) TestGetAdsByTitle_OK() {
 	suite.adsService.On("GetAdsByTitle", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string")).
 		Return([]*ads.Ad{{Title: "example", Text: "text", AuthorID: 1, ID: 10}}, nil)
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/title/example", nil)
@@ -170,7 +170,7 @@ func (suite *ApiTestSuite) TestGetAdsByTitle_OK() {
 	suite.Equal(responseAd.Data[0].ID, int64(10))
 }
 
-func (suite *ApiTestSuite) TestGetAdsByTitle_InvalidAdTitle() {
+func (suite *AdsApiTestSuite) TestGetAdsByTitle_InvalidAdTitle() {
 	suite.adsService.On("GetAdsByTitle", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string")).
 		Return(nil, adrepo.ErrInvalidAdTitle)
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/title/example", nil)
@@ -178,7 +178,7 @@ func (suite *ApiTestSuite) TestGetAdsByTitle_InvalidAdTitle() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestGetAdsByTitle_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestGetAdsByTitle_UnexpectedError() {
 	suite.adsService.On("GetAdsByTitle", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("string")).
 		Return(nil, errors.New("unexpected error"))
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads/title/example", nil)
@@ -186,7 +186,7 @@ func (suite *ApiTestSuite) TestGetAdsByTitle_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestGetAllAds_OK() {
+func (suite *AdsApiTestSuite) TestGetAllAds_OK() {
 	suite.adsService.On("GetAll", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("ads.Filters")).
 		Return([]*ads.Ad{{Title: "example", Text: "text", AuthorID: 1, ID: 10},
 			{Title: "example2", Text: "text2", AuthorID: 1, ID: 10}}, nil)
@@ -201,7 +201,7 @@ func (suite *ApiTestSuite) TestGetAllAds_OK() {
 	suite.Equal(responseAd.Data[0].ID, int64(10))
 }
 
-func (suite *ApiTestSuite) TestGetAllAds_InvalidFilters() {
+func (suite *AdsApiTestSuite) TestGetAllAds_InvalidFilters() {
 	suite.adsService.On("GetAll", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("ads.Filters")).
 		Return(nil, ads.ErrInvalidFilters)
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads?autdffdvfhor_id=1", nil)
@@ -209,7 +209,7 @@ func (suite *ApiTestSuite) TestGetAllAds_InvalidFilters() {
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestGetAllAds_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestGetAllAds_UnexpectedError() {
 	suite.adsService.On("GetAll", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("ads.Filters")).
 		Return(nil, errors.New("unexpected error"))
 	req, _ := http.NewRequest(http.MethodGet, suite.baseURL+"/api/v1/ads?author_id=1", nil)
@@ -217,7 +217,7 @@ func (suite *ApiTestSuite) TestGetAllAds_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_OK() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_OK() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(&ads.Ad{ID: 1, AuthorID: 1, Published: true}, nil)
@@ -237,7 +237,7 @@ func (suite *ApiTestSuite) TestChangeAdStatus_OK() {
 	suite.Equal(responseAd.Data.ID, int64(1))
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_UserCantChangeThisAd() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_UserCantChangeThisAd() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(nil, ads.ErrUserCantChangeThisAd)
@@ -251,7 +251,7 @@ func (suite *ApiTestSuite) TestChangeAdStatus_UserCantChangeThisAd() {
 	suite.Equal(resp.StatusCode, http.StatusForbidden)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_InvalidUserId() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_InvalidUserId() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(nil, userrepo.ErrInvalidUserId)
@@ -265,7 +265,7 @@ func (suite *ApiTestSuite) TestChangeAdStatus_InvalidUserId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_InvalidAdId() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_InvalidAdId() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(nil, adrepo.ErrInvalidAdId)
@@ -279,7 +279,7 @@ func (suite *ApiTestSuite) TestChangeAdStatus_InvalidAdId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_InvalidAdParams() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_InvalidAdParams() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(nil, ads.ErrInvalidAdParams)
@@ -293,7 +293,7 @@ func (suite *ApiTestSuite) TestChangeAdStatus_InvalidAdParams() {
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_UnexpectedError() {
 	suite.adsService.On("ChangeAdStatus", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("bool")).
 		Return(nil, errors.New("unexpected Error"))
@@ -307,13 +307,13 @@ func (suite *ApiTestSuite) TestChangeAdStatus_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestChangeAdStatus_NilBody() {
+func (suite *AdsApiTestSuite) TestChangeAdStatus_NilBody() {
 	req, _ := http.NewRequest(http.MethodPut, suite.baseURL+"/api/v1/ads/1/status", nil)
 	resp, _ := suite.client.Do(req)
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestUpdateText_OK() {
+func (suite *AdsApiTestSuite) TestUpdateText_OK() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(&ads.Ad{ID: 1, AuthorID: 1, Text: "new text", Title: "new title"}, nil)
@@ -334,7 +334,7 @@ func (suite *ApiTestSuite) TestUpdateText_OK() {
 	suite.Equal(responseAd.Data.ID, int64(1))
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_UserCantChangeThisAd() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_UserCantChangeThisAd() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(nil, ads.ErrUserCantChangeThisAd)
@@ -349,7 +349,7 @@ func (suite *ApiTestSuite) TestUpdateAdText_UserCantChangeThisAd() {
 	suite.Equal(resp.StatusCode, http.StatusForbidden)
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_InvalidUserId() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_InvalidUserId() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(nil, userrepo.ErrInvalidUserId)
@@ -364,7 +364,7 @@ func (suite *ApiTestSuite) TestUpdateAdText_InvalidUserId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_InvalidAdParams() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_InvalidAdParams() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(nil, ads.ErrInvalidAdParams)
@@ -379,7 +379,7 @@ func (suite *ApiTestSuite) TestUpdateAdText_InvalidAdParams() {
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_InvalidAdId() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_InvalidAdId() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(nil, adrepo.ErrInvalidAdId)
@@ -394,7 +394,7 @@ func (suite *ApiTestSuite) TestUpdateAdText_InvalidAdId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_UnexpectedError() {
 	suite.adsService.On("UpdateAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 		Return(nil, errors.New("unexpected error"))
@@ -409,13 +409,13 @@ func (suite *ApiTestSuite) TestUpdateAdText_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func (suite *ApiTestSuite) TestUpdateAdText_NilBody() {
+func (suite *AdsApiTestSuite) TestUpdateAdText_NilBody() {
 	req, _ := http.NewRequest(http.MethodPut, suite.baseURL+"/api/v1/ads/1/text", nil)
 	resp, _ := suite.client.Do(req)
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_OK() {
+func (suite *AdsApiTestSuite) TestDeleteAd_OK() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(nil)
@@ -432,7 +432,7 @@ func (suite *ApiTestSuite) TestDeleteAd_OK() {
 	suite.Equal(responseAd.Data, "ad successfully deleted")
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_NilBody() {
+func (suite *AdsApiTestSuite) TestDeleteAd_NilBody() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(nil)
@@ -441,7 +441,7 @@ func (suite *ApiTestSuite) TestDeleteAd_NilBody() {
 	suite.Equal(resp.StatusCode, http.StatusBadRequest)
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_InvalidUserId() {
+func (suite *AdsApiTestSuite) TestDeleteAd_InvalidUserId() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(userrepo.ErrInvalidUserId)
@@ -454,7 +454,7 @@ func (suite *ApiTestSuite) TestDeleteAd_InvalidUserId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_InvalidAdId() {
+func (suite *AdsApiTestSuite) TestDeleteAd_InvalidAdId() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(adrepo.ErrInvalidAdId)
@@ -467,7 +467,7 @@ func (suite *ApiTestSuite) TestDeleteAd_InvalidAdId() {
 	suite.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_UnableToDelete() {
+func (suite *AdsApiTestSuite) TestDeleteAd_UnableToDelete() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(adsapp.ErrUnableToDelete)
@@ -480,7 +480,7 @@ func (suite *ApiTestSuite) TestDeleteAd_UnableToDelete() {
 	suite.Equal(resp.StatusCode, http.StatusForbidden)
 }
 
-func (suite *ApiTestSuite) TestDeleteAd_UnexpectedError() {
+func (suite *AdsApiTestSuite) TestDeleteAd_UnexpectedError() {
 	suite.adsService.On("DeleteAd", mock.AnythingOfType("*gin.Context"), mock.AnythingOfType("int64"),
 		mock.AnythingOfType("int64")).
 		Return(errors.New("unexpected error"))
@@ -493,6 +493,6 @@ func (suite *ApiTestSuite) TestDeleteAd_UnexpectedError() {
 	suite.Equal(resp.StatusCode, http.StatusInternalServerError)
 }
 
-func TestApi(t *testing.T) {
-	suite.Run(t, new(ApiTestSuite))
+func TestAdsApi(t *testing.T) {
+	suite.Run(t, new(AdsApiTestSuite))
 }
