@@ -24,6 +24,10 @@ func New() ads.Repository {
 	return &repository{adDataById: make(map[int64]*ads.Ad), curIdGenerator: 0, mu: &sync.RWMutex{}}
 }
 
+func NewForTest(r map[int64]*ads.Ad, idGen int64) ads.Repository {
+	return &repository{adDataById: r, curIdGenerator: idGen, mu: &sync.RWMutex{}}
+}
+
 func (r *repository) AddAd(ctx context.Context, ad *ads.Ad) (int64, error) {
 	r.mu.Lock()
 	ad.ID = r.curIdGenerator

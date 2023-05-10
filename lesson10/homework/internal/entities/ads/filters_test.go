@@ -128,3 +128,12 @@ func BenchmarkIsAuthorIdValid3(b *testing.B) {
 		_ = isAuthorIdValid3(strconv.Itoa(i))
 	}
 }
+
+func FuzzIsAuthorIdValid(f *testing.F) {
+	f.Fuzz(func(t *testing.T, id int) {
+		got := isAuthorIdValid(strconv.Itoa(id))
+		if !got {
+			t.Errorf("%v", got)
+		}
+	})
+}
