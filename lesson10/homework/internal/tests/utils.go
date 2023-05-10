@@ -123,7 +123,7 @@ func (tc *testClient) createAd(userID int64, title string, text string) (adRespo
 		return adResponse{}, fmt.Errorf("unable to create request: %w", err)
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	//req.Header.Add("Content-Type", "application/json")
 
 	var response adResponse
 	err = tc.getResponse(req, &response)

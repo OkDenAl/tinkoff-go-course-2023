@@ -14,7 +14,8 @@ import (
 func createAd(a adsapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody createAdRequest
-		if err := c.BindJSON(&reqBody); err != nil {
+		err := c.BindJSON(&reqBody)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, AdErrorResponse(err))
 			return
 		}
@@ -37,6 +38,7 @@ func createAd(a adsapp.App) gin.HandlerFunc {
 func getAdById(a adsapp.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		adId, _ := strconv.Atoi(c.Param("ad_id"))
+		log.Println(adId)
 		ad, err := a.GetAdById(c, int64(adId))
 		if err != nil {
 			switch err {
