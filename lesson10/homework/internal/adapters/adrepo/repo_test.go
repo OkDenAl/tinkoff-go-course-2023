@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-type RepoOkTest struct {
+type AdsRepoTest struct {
 	Name    string
 	Body    any
 	Expect  any
@@ -42,7 +42,7 @@ type UpdateTitleBody struct {
 }
 
 func TestAdRepository(t *testing.T) {
-	tests := []RepoOkTest{
+	tests := []AdsRepoTest{
 		{
 			Name: "add first ad ok", Body: AddBody{Ad: &ads.Ad{Title: "title"}},
 			Expect: int64(1),

@@ -77,14 +77,6 @@ func isAuthorIdValid(id string) bool {
 	return err == nil
 }
 
-func isAuthorIdValidIncorrect(id string) bool {
-	if id == "1" {
-		return false
-	}
-	_, err := strconv.Atoi(id)
-	return err == nil
-}
-
 func isAuthorIdValid2(id string) bool {
 	if id == "" {
 		return true

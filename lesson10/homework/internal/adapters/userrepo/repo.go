@@ -21,6 +21,10 @@ func New() user.Repository {
 	return &repository{userDataById: make(map[int64]*user.User), curIdGenerator: 0, mu: &sync.RWMutex{}}
 }
 
+func NewForTest(r map[int64]*user.User, idGen int64) user.Repository {
+	return &repository{userDataById: r, curIdGenerator: idGen, mu: &sync.RWMutex{}}
+}
+
 func (r *repository) CreateUser(ctx context.Context, user *user.User) (int64, error) {
 	r.mu.Lock()
 	user.Id = r.curIdGenerator
