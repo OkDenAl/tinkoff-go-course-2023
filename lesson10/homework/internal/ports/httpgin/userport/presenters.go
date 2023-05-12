@@ -18,12 +18,10 @@ type userResponse struct {
 }
 
 type changeNicknameRequest struct {
-	Id       int64  `json:"id"`
 	Nickname string `json:"nickname"`
 }
 
 type updatePasswordRequest struct {
-	Id       int64  `json:"id"`
 	Password string `json:"password"`
 }
 

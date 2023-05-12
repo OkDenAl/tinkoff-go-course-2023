@@ -76,3 +76,19 @@ func isAuthorIdValid(id string) bool {
 	_, err := strconv.Atoi(id)
 	return err == nil
 }
+
+func isAuthorIdValid2(id string) bool {
+	if id == "" {
+		return true
+	}
+	_, err := strconv.ParseInt(id, 10, 32)
+	return err == nil
+}
+
+func isAuthorIdValid3(id string) bool {
+	if id == "" {
+		return true
+	}
+	_, err := strconv.ParseInt(id, 10, 32)
+	return err == nil
+}
