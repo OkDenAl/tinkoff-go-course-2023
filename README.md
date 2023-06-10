@@ -1,45 +1,30 @@
-# go-course-for-students
+# Tinkoff Fintech - Golang
 
-Ваши домашние задания будут проверяться только при условии, если они сдаются в виде pr-а внутри приватного форка.
+В данном репозитории находятся домашние работы по курсу `"Golang разработчик"` от Tinkoff.
 
-### Как сделать приватный форк
+---
+## Выпускной проект
+В течении семестра `разрабатывался проект`, постепенно наращивался функционал в домашних работах. 
+[Финальная версия проекта.](https://github.com/OkDenAl/tinkoff-go-course-2023/tree/main/lesson10/homework)
 
-1. Создайте голый клон репозитория
-    ```bash
-    git clone --bare git@github.com:Tinkoff/go-course-for-students.git
-    ```
-
-2. [Создайте новый приватный репозиторий на github](https://docs.github.com/ru/repositories/creating-and-managing-repositories/creating-a-new-repository)
-   и назовите его go-course-for-students
-
-3. Зеркально отправьте свой голый клон в новый go-course-for-students репозиторий
-   > Замените `<your_username>` своим именем на Github в приведенном ниже URL-адресе
-
-    ```bash
-    cd go-course-for-students.git
-    git push --mirror git@github.com:<your_username>/go-course-for-students.git
-    ```
-
-4. Удалите временный локальный репозиторий, созданный на шаге 1
-   ```bash
-   cd ..
-   rm -rf go-course-for-student.git
-   ```
-
-5. Теперь вы можете клонировать репозиторий `go-course-for-students` на свой компьютер
-   ```bash
-   git clone git@github.com:<your_username>/go-course-for-students.git
-   ```
-
-6. Для того чтобы мы могли проверить ДЗ надо [предоставить доступ в репозиторий](https://docs.github.com/ru/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository)
-пользователю [GoCourseTeachers](https://github.com/GoCourseTeachers)
+---
+## Навигация по репозиторию
+*Нумерация в списке - номер ДЗ*
 
 
-### Как подтянуть изменения в форк
+1. [Знакомство с Go](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson1/homework/Readme.md)
+2. [Облако тэгов](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson2/homework/Readme.md)
+3. [Утилита для копирования файлов](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson3/homework/README.md)
+4. [Подсчитать размер файлов в объектном хранилище](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson4/homework/README.md)
+5. [Разработка Пайплайна](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson5/homework/readme.md)
+6. [Clean Architecture Web-сервис](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson6/homework/readme.md)
+7. [Реализация собственной библиотеки - validator](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson7/homework/README.md)
+8. [Улучшение Web-сервиса](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson8/homework/readme.md)
+9. [gRPC](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson9/homework/readme.md)
+10. [Покрытие кода тестами](https://github.com/OkDenAl/tinkoff-go-course-2023/blob/main/lesson10/homework/readme.md)
 
-Обратите внимание, для того чтобы скачать спецификацию и тесты локально нужно подтянуть изменения из основного репозитория.
-Для этого:
-1. Замержите в свой main всю накопленную работу в своём форке и переключитесь на обновлённый main локально
-2. Если не настроен upstream, то сделайте ```git remote add upstream git@github.com:Tinkoff/go-course-for-students.git``` или ```git remote add upstream https://github.com/Tinkoff/go-course-for-students.git```
-3. Обновите upstream: ```git fetch upstream```
-4. Подтяните изменения из upstream и ребазируйтесь на них: ```git rebase upstream/main```
+---
+
+Всего за курс можно было набрать 100 баллов. Мой результат `97/100`.
+
+Если остались вопросы? Напишите в `telegram - @raiden4545`
